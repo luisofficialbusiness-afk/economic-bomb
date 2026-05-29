@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Add Bot — Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0e0e10;
+  --surface: #18181b;
+  --border: #27272a;
+  --text: #fafafa;
+  --muted: #71717a;
+  --subtle: #3f3f46;
+  --accent: #eab308;
+  --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444;
+  --green: #22c55e;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text);
+}
+.logo img { height: 26px; width: 26px; object-fit: contain; border-radius: 5px; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link {
+  padding: 0.4rem 0.75rem; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 500; color: var(--muted);
+  transition: color 0.15s, background 0.15s;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn {
+  margin-left: 0.5rem;
+  padding: 0.4rem 1rem; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 600;
+  background: var(--accent); color: #000;
+  transition: opacity 0.15s;
+}
+.nav-btn:hover { opacity: 0.88; }
+
+/* HERO */
+.hero {
+  flex: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 6rem 1.5rem 4rem;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 100px; padding: 0.3rem 0.9rem;
+  margin-bottom: 2rem;
+  opacity: 0; animation: rise 0.5s 0.05s forwards;
+}
+.eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 5px var(--red);
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 600; letter-spacing: -0.04em; line-height: 1.05;
+  margin-bottom: 1.25rem;
+  opacity: 0; animation: rise 0.5s 0.1s forwards;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p {
+  font-size: 1rem; color: var(--muted); max-width: 400px;
+  margin-bottom: 2.5rem; line-height: 1.7;
+  opacity: 0; animation: rise 0.5s 0.15s forwards;
+}
+.hero-actions {
+  display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+  opacity: 0; animation: rise 0.5s 0.2s forwards;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.4rem; border-radius: 8px;
+  font-size: 0.88rem; font-weight: 600;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.btn:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-fill { background: var(--accent); color: #000; }
+.btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  font-size: 0.82rem; color: var(--muted);
+}
+.footer-logo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 600; font-size: 0.9rem; color: var(--text);
+}
+.footer-logo img { height: 22px; width: 22px; object-fit: contain; border-radius: 4px; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" alt="Economic Bomb"/>
+    Economic<span class="logo-dot"> Bomb</span>
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Commands</a>
+    <a href="https://discord.gg/yFbXUYybbA" class="nav-link">Support</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="eyebrow-dot"></span>
+    Bot Not Found
+  </div>
+  <h1>Add the bot<br/><em>first.</em></h1>
+  <p>Economic Bomb isn't in any of your servers yet. Invite it, then come back to access your dashboard.</p>
+  <div class="hero-actions">
+    <a href="/invite" class="btn btn-fill">+ Add Economic Bomb</a>
+    <a href="/auth/logout" class="btn btn-outline">← Back to login</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">
+    <img src="economicbomb.webp" alt=""/>
+    Economic<span> Bomb</span>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="https://discord.gg/yFbXUYybbA">Support</a>
+  </div>
+  <span>© 2026 Economic Bomb</span>
+</footer>
+
+</body>
+</html>

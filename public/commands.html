@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Commands — Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.1);
+  --red: #ef4444; --green: #22c55e; --blue: #60a5fa;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.logo span { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.page-top {
+  padding: 7rem 2rem 3rem; max-width: 1100px; margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.page-top h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+.page-top p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.5rem; }
+.search {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.55rem 1rem; max-width: 340px;
+  transition: border-color 0.15s;
+}
+.search:focus-within { border-color: var(--subtle); }
+.search input { background: none; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; width: 100%; }
+.search input::placeholder { color: var(--muted); }
+
+.layout { display: flex; max-width: 1100px; margin: 0 auto; }
+
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  padding: 2rem 0;
+  border-right: 1px solid var(--border);
+  position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+}
+.sb-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 1rem; margin-bottom: 0.4rem; margin-top: 1.25rem; }
+.sb-label:first-child { margin-top: 0; }
+.sb-link { display: block; padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 500; color: var(--muted); border-radius: 6px; margin: 1px 0.4rem; transition: color 0.15s, background 0.15s; }
+.sb-link:hover { color: var(--text); background: var(--surface); }
+.sb-link.active { color: var(--text); background: var(--surface); }
+
+.content { flex: 1; padding: 3rem 2.5rem; min-width: 0; }
+
+.cmd-section { margin-bottom: 3.5rem; }
+.sec-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding-bottom: 1rem; margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.sec-icon { font-size: 1.2rem; }
+.sec-name { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
+.sec-count { margin-left: auto; font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+.cmd-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem 1.5rem;
+  margin-bottom: 0.6rem; transition: border-color 0.15s;
+}
+.cmd-card:hover { border-color: var(--subtle); }
+.cmd-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.cmd-tag {
+  font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 500;
+  color: var(--accent); background: var(--accent-dim);
+  padding: 0.2rem 0.6rem; border-radius: 5px;
+}
+.alias { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border); padding: 0.15rem 0.45rem; border-radius: 4px; }
+.badge { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; padding: 0.18rem 0.5rem; border-radius: 4px; }
+.b-cd  { background: rgba(96,165,250,0.1); color: var(--blue); }
+.b-own { background: var(--accent-dim); color: var(--accent); }
+.b-dmg { background: rgba(239,68,68,0.1); color: var(--red); }
+.cmd-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.65; margin-bottom: 0.75rem; }
+.cmd-usage {
+  font-family: 'DM Mono', monospace; font-size: 0.82rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.6rem 0.9rem; color: var(--text);
+}
+.p { color: var(--accent); }
+.a { color: var(--blue); }
+.o { color: var(--muted); }
+.notes { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.note { font-size: 0.8rem; color: var(--muted); padding-left: 0.75rem; position: relative; line-height: 1.5; }
+.note::before { content: '·'; position: absolute; left: 0; color: var(--subtle); }
+
+@media (max-width: 800px) {
+  .sidebar { display: none; }
+  .content { padding: 2rem 1.5rem; }
+  .page-top { padding: 6rem 1.5rem 2rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><img src="economicbomb.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;"> Economic<span> Bomb</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link active">Commands</a>
+    <a href="https://discord.gg/YOUR_SUPPORT" class="nav-link">Support</a>
+    <a href="https://discord.gg/YOUR_INVITE" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="page-top">
+  <h1>Commands</h1>
+  <p>All commands use the <code style="font-family:'DM Mono',monospace;color:var(--accent)">?</code> prefix. Slash commands also available.</p>
+  <div class="search">
+    <span style="color:var(--muted);font-size:0.85rem;">⌕</span>
+    <input type="text" id="search" placeholder="Search commands..."/>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-label">Categories</div>
+    <a class="sb-link active" href="#economy">💰 Economy</a>
+    <a class="sb-link" href="#gambling">🎰 Gambling</a>
+    <a class="sb-link" href="#stocks">📈 Stocks</a>
+    <a class="sb-link" href="#slave">⛓️ Slave System</a>
+    <a class="sb-link" href="#boards">🏆 Leaderboards</a>
+    <a class="sb-link" href="#seasons">🗓️ Seasons</a>
+    <a class="sb-link" href="#owner">👑 Owner Only</a>
+  </aside>
+
+  <main class="content">
+
+    <div class="cmd-section" id="economy">
+      <div class="sec-header">
+        <span class="sec-icon">💰</span>
+        <span class="sec-name">Economy</span>
+        <span class="sec-count">6 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?balance</span><span class="alias">?bal</span></div>
+        <div class="cmd-desc">Check your wallet and bank balance.</div>
+        <div class="cmd-usage"><span class="p">?</span>balance</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?work</span><span class="badge b-cd">5 min cooldown</span></div>
+        <div class="cmd-desc">Earn money. If enslaved, all earnings go to your owner and reduce your debt.</div>
+        <div class="cmd-usage"><span class="p">?</span>work</div>
+        <div class="notes">
+          <div class="note">Earns $25–$100 per use</div>
+          <div class="note">Enslaved users: earnings route to owner automatically</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?deposit</span><span class="alias">?dep</span></div>
+        <div class="cmd-desc">Move cash from your wallet into your bank.</div>
+        <div class="cmd-usage"><span class="p">?</span>deposit <span class="a">[amount]</span> <span class="o">| all</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?withdraw</span><span class="alias">?with</span></div>
+        <div class="cmd-desc">Withdraw from your bank back into your wallet.</div>
+        <div class="cmd-usage"><span class="p">?</span>withdraw <span class="a">[amount]</span> <span class="o">| all</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?givemoney</span><span class="alias">?give</span></div>
+        <div class="cmd-desc">Transfer money from your wallet to another player.</div>
+        <div class="cmd-usage"><span class="p">?</span>give <span class="a">@user [amount]</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?rob</span><span class="badge b-cd">10 min cooldown</span><span class="badge b-dmg">Risk</span></div>
+        <div class="cmd-desc">Attempt to steal from another player's wallet. Getting caught costs you money.</div>
+        <div class="cmd-usage"><span class="p">?</span>rob <span class="a">@user</span></div>
+        <div class="notes">
+          <div class="note">Target needs at least $50 in wallet</div>
+          <div class="note">Base success: 60%, scales down with target's wealth</div>
+          <div class="note">If caught: lose 15% of your balance (min $200)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="gambling">
+      <div class="sec-header">
+        <span class="sec-icon">🎰</span>
+        <span class="sec-name">Gambling</span>
+        <span class="sec-count">4 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?coinflip</span><span class="alias">?cf</span><span class="badge b-cd">5 min cooldown</span></div>
+        <div class="cmd-desc">Bet on heads or tails. Win 2× your bet or lose it.</div>
+        <div class="cmd-usage"><span class="p">?</span>coinflip <span class="a">[bet] [heads|tails]</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?slots</span><span class="badge b-cd">5 min cooldown</span></div>
+        <div class="cmd-desc">Spin the slot machine. Match symbols to multiply your bet.</div>
+        <div class="cmd-usage"><span class="p">?</span>slots <span class="a">[bet]</span></div>
+        <div class="notes">
+          <div class="note">2 matching: 2× bet</div>
+          <div class="note">3 matching: 5× bet (jackpot)</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?dice</span><span class="badge b-cd">5 min cooldown</span></div>
+        <div class="cmd-desc">Roll against the bot. Higher roll wins double. Tie refunds your bet.</div>
+        <div class="cmd-usage"><span class="p">?</span>dice <span class="a">[bet]</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?duel</span></div>
+        <div class="cmd-desc">Challenge another player. Winner decided randomly.</div>
+        <div class="cmd-usage"><span class="p">?</span>duel <span class="a">@user</span></div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="stocks">
+      <div class="sec-header">
+        <span class="sec-icon">📈</span>
+        <span class="sec-name">Stock Market</span>
+        <span class="sec-count">5 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?stocks</span></div>
+        <div class="cmd-desc">View all 15 companies with current prices and recent % change. Prices update every 30 minutes.</div>
+        <div class="cmd-usage"><span class="p">?</span>stocks</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?buystock</span></div>
+        <div class="cmd-desc">Buy shares of a company. Buying pushes the price up slightly.</div>
+        <div class="cmd-usage"><span class="p">?</span>buystock <span class="a">[TICKER] [shares]</span></div>
+        <div class="notes"><div class="note">Example: ?buystock TGLC 10</div></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?sellstock</span></div>
+        <div class="cmd-desc">Sell shares from your portfolio. Selling pushes the price down slightly.</div>
+        <div class="cmd-usage"><span class="p">?</span>sellstock <span class="a">[TICKER] [shares]</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?portfolio</span><span class="alias">?port</span></div>
+        <div class="cmd-desc">View your holdings, current value, and total profit or loss.</div>
+        <div class="cmd-usage"><span class="p">?</span>portfolio</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?stockhistory</span><span class="alias">?sh</span></div>
+        <div class="cmd-desc">See the last 10 price points for a stock with trend indicators.</div>
+        <div class="cmd-usage"><span class="p">?</span>stockhistory <span class="a">[TICKER]</span></div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="slave">
+      <div class="sec-header">
+        <span class="sec-icon">⛓️</span>
+        <span class="sec-name">Slave System</span>
+        <span class="sec-count">5 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?buy</span><span class="badge b-dmg">High Stakes</span></div>
+        <div class="cmd-desc">Purchase another player. The price is 2× their current wallet balance. The target has 2 minutes to outbid you — if they don't, they're yours.</div>
+        <div class="cmd-usage"><span class="p">?</span>buy <span class="a">@user</span></div>
+        <div class="notes">
+          <div class="note">Buy price = target's balance × 2</div>
+          <div class="note">Once bought, all their ?work earnings go to you</div>
+          <div class="note">They must earn 2× the buy price to be freed</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?outbid</span></div>
+        <div class="cmd-desc">Use within 2 minutes of a buy attempt to escape. You must offer more than the buy price.</div>
+        <div class="cmd-usage"><span class="p">?</span>outbid <span class="a">[amount]</span></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?slave</span></div>
+        <div class="cmd-desc">Check your slave status — who owns you, remaining debt, and total earned for your owner.</div>
+        <div class="cmd-usage"><span class="p">?</span>slave</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?slavepanel</span></div>
+        <div class="cmd-desc">Owner panel to manage your slaves. Shows stats with buttons to free, renew, or refresh.</div>
+        <div class="cmd-usage"><span class="p">?</span>slavepanel</div>
+        <div class="notes">
+          <div class="note">Set Free — release immediately at no cost</div>
+          <div class="note">Renew — pay half their current debt to double it</div>
+          <div class="note">Refresh — pull updated stats</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?slavelist</span></div>
+        <div class="cmd-desc">Leaderboard of who owns the most slaves in the server.</div>
+        <div class="cmd-usage"><span class="p">?</span>slavelist</div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="boards">
+      <div class="sec-header">
+        <span class="sec-icon">🏆</span>
+        <span class="sec-name">Leaderboards</span>
+        <span class="sec-count">2 commands</span>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?leaderboard</span><span class="alias">?lb</span></div>
+        <div class="cmd-desc">Top 10 players by wallet balance.</div>
+        <div class="cmd-usage"><span class="p">?</span>leaderboard</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?bankleaderboard</span><span class="alias">?blb</span></div>
+        <div class="cmd-desc">Top 10 players by bank balance.</div>
+        <div class="cmd-usage"><span class="p">?</span>bankleaderboard</div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="seasons">
+      <div class="sec-header">
+        <span class="sec-icon">🗓️</span>
+        <span class="sec-name">Seasons</span>
+        <span class="sec-count">3 commands</span>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?seasonpreview</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Preview current Season standings before the reset. Only visible to you (ephemeral).</div>
+        <div class="cmd-usage"><span class="p">?</span>seasonpreview</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?seasonreset</span><span class="badge b-own">Owner</span><span class="badge b-dmg">Wipes Economy</span></div>
+        <div class="cmd-desc">Start the season end countdown. Shows final standings and schedules the wipe at 7 PM CDT with a live timer.</div>
+        <div class="cmd-usage"><span class="p">?</span>seasonreset</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?season2</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Start a 1-month Season 2 countdown with live leaderboard that updates daily.</div>
+        <div class="cmd-usage"><span class="p">?</span>season2</div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="owner">
+      <div class="sec-header">
+        <span class="sec-icon">👑</span>
+        <span class="sec-name">Owner Only</span>
+        <span class="sec-count">9 commands</span>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?ogive</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Give any amount of money to a player.</div>
+        <div class="cmd-usage"><span class="p">?</span>ogive <span class="a">@user [amount]</span></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?osetbalance</span><span class="alias">?osetbal</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Set a player's wallet to an exact amount.</div>
+        <div class="cmd-usage"><span class="p">?</span>osetbalance <span class="a">@user [amount]</span></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?osetbank</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Set a player's bank to an exact amount.</div>
+        <div class="cmd-usage"><span class="p">?</span>osetbank <span class="a">@user [amount]</span></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?oresetleaderboard</span><span class="alias">?oreset</span><span class="badge b-own">Owner</span><span class="badge b-dmg">Wipes All</span></div>
+        <div class="cmd-desc">Reset all balances and banks to $0.</div>
+        <div class="cmd-usage"><span class="p">?</span>oresetleaderboard</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?oeconomystats</span><span class="alias">?ostats</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Total money in circulation and richest player.</div>
+        <div class="cmd-usage"><span class="p">?</span>oeconomystats</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?ouserinfo</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">View a player's balance and bank.</div>
+        <div class="cmd-usage"><span class="p">?</span>ouserinfo <span class="a">@user</span></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?ojackpotdrop</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Drop a jackpot to a random server member.</div>
+        <div class="cmd-usage"><span class="p">?</span>ojackpotdrop <span class="a">[amount]</span></div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?clearcooldowns</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Clear all active cooldowns for all players.</div>
+        <div class="cmd-usage"><span class="p">?</span>clearcooldowns</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">?ostockfix</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Manually trigger a stock market fluctuation tick — same ±3% logic as the 30-minute auto update.</div>
+        <div class="cmd-usage"><span class="p">?</span>ostockfix</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const search = document.getElementById('search');
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase();
+  document.querySelectorAll('.cmd-card').forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+  document.querySelectorAll('.cmd-section').forEach(s => {
+    const any = [...s.querySelectorAll('.cmd-card')].some(c => c.style.display !== 'none');
+    s.style.display = any ? '' : 'none';
+  });
+});
+document.querySelectorAll('.sb-link').forEach(l => {
+  l.addEventListener('click', () => {
+    document.querySelectorAll('.sb-link').forEach(x => x.classList.remove('active'));
+    l.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

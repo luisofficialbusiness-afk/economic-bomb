@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0e0e10;
+  --surface: #18181b;
+  --border: #27272a;
+  --text: #fafafa;
+  --muted: #71717a;
+  --subtle: #3f3f46;
+  --accent: #eab308;
+  --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444;
+  --green: #22c55e;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text);
+}
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link {
+  padding: 0.4rem 0.75rem; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 500; color: var(--muted);
+  transition: color 0.15s, background 0.15s;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn {
+  margin-left: 0.5rem;
+  padding: 0.4rem 1rem; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 600;
+  background: var(--accent); color: #000;
+  transition: opacity 0.15s;
+}
+.nav-btn:hover { opacity: 0.88; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 6rem 1.5rem 4rem;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 100px; padding: 0.3rem 0.9rem;
+  margin-bottom: 2rem;
+  opacity: 0; animation: rise 0.5s 0.05s forwards;
+}
+.eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 5px var(--green);
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 600; letter-spacing: -0.04em; line-height: 1.05;
+  margin-bottom: 1.25rem;
+  opacity: 0; animation: rise 0.5s 0.1s forwards;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p {
+  font-size: 1rem; color: var(--muted); max-width: 420px;
+  margin-bottom: 2.5rem; line-height: 1.7;
+  opacity: 0; animation: rise 0.5s 0.15s forwards;
+}
+.hero-actions {
+  display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+  opacity: 0; animation: rise 0.5s 0.2s forwards;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.4rem; border-radius: 8px;
+  font-size: 0.88rem; font-weight: 600;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.btn:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-fill { background: var(--accent); color: #000; }
+.btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+/* STATS ROW */
+.stats {
+  display: flex; gap: 0; margin-top: 4.5rem;
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden;
+  opacity: 0; animation: rise 0.5s 0.25s forwards;
+}
+.stat {
+  padding: 1.25rem 2.5rem; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child { border-right: none; }
+.stat-n {
+  font-size: 1.6rem; font-weight: 600; letter-spacing: -0.03em;
+  color: var(--text); display: block;
+}
+.stat-l { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); }
+
+/* FEATURES */
+.features { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+.section-label {
+  font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.section-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 600; letter-spacing: -0.03em;
+  margin-bottom: 3rem;
+}
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.feat-card {
+  background: var(--bg);
+  padding: 2rem;
+  transition: background 0.15s;
+}
+.feat-card:hover { background: var(--surface); }
+.feat-icon { font-size: 1.4rem; margin-bottom: 1rem; display: block; }
+.feat-name {
+  font-size: 0.95rem; font-weight: 600;
+  margin-bottom: 0.4rem; letter-spacing: -0.01em;
+}
+.feat-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+/* CMD PREVIEW */
+.cmd-preview { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+.cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.cmd-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cmd-group-title {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.cmd-row {
+  display: flex; align-items: baseline; gap: 1rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.cmd-row:last-child { border-bottom: none; }
+.cmd-row:hover { background: rgba(255,255,255,0.02); }
+.cmd-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem; color: var(--accent);
+  white-space: nowrap; min-width: 150px;
+}
+.cmd-info { font-size: 0.8rem; color: var(--muted); }
+
+/* SLAVE CALLOUT */
+.callout-wrap { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 3rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+}
+.callout-tag {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: 4px; padding: 0.2rem 0.5rem;
+  margin-bottom: 1rem;
+}
+.callout h2 {
+  font-size: 1.8rem; font-weight: 600; letter-spacing: -0.03em;
+  margin-bottom: 0.75rem; line-height: 1.2;
+}
+.callout p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+.callout-steps { display: flex; flex-direction: column; gap: 0.6rem; }
+.cstep {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.cstep-n {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem; color: var(--accent);
+  margin-top: 0.05rem; flex-shrink: 0;
+}
+.cstep-t { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+.cstep-t b { color: var(--text); font-weight: 500; }
+
+/* MARKET */
+.market { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+.ticker-row {
+  display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem;
+}
+.ticker {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  min-width: 130px;
+  transition: border-color 0.15s;
+}
+.ticker:hover { border-color: var(--subtle); }
+.ticker-sym { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+.ticker-co { font-size: 0.72rem; color: var(--muted); margin: 0.1rem 0 0.4rem; }
+.ticker-px { font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 500; }
+.ticker-ch { font-family: 'DM Mono', monospace; font-size: 0.72rem; margin-top: 0.15rem; }
+.up { color: var(--green); }
+.dn { color: var(--red); }
+
+/* LAUNCH */
+.launch {
+  padding: 6rem 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.launch-date {
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+.launch h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 600; letter-spacing: -0.04em;
+  margin-bottom: 0.75rem;
+}
+.launch p { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; }
+.countdown {
+  display: inline-flex; gap: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+.cblock {
+  padding: 1.25rem 1.75rem; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.cblock:last-child { border-right: none; }
+.cn {
+  font-family: 'DM Mono', monospace;
+  font-size: 2rem; font-weight: 500;
+  display: block; color: var(--text);
+}
+.cl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+
+/* FOOTER */
+footer {
+  padding: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+.footer-logo { font-size: 0.88rem; font-weight: 600; color: var(--muted); }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.82rem; color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { font-size: 0.78rem; color: var(--subtle); }
+
+@media (max-width: 768px) {
+  .feat-grid { grid-template-columns: 1fr; }
+  .cmd-grid { grid-template-columns: 1fr; }
+  .callout { grid-template-columns: 1fr; gap: 2rem; padding: 2rem; }
+  .stats { flex-wrap: wrap; }
+  .stat { border-right: none; border-bottom: 1px solid var(--border); flex: 1 1 120px; }
+  .countdown { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo"><img src="economicbomb.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;"> Economic<span> Bomb</span></a>
+  <div class="nav-right">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#commands" class="nav-link">Commands</a>
+    <a href="commands.html" class="nav-link">Docs</a>
+    <a href="https://discord.gg/yFbXUYybbA" class="nav-link">Support</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="eyebrow-dot"></span>
+    Launching June 15, 2026
+  </div>
+  <h1>The Discord bot that<br/><em>blows up</em> your economy</h1>
+  <p>Stock market, slave system, gambling, seasonal resets — all in one bot. Built for competitive servers.</p>
+  <div class="hero-actions">
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="btn btn-fill">Add to Discord</a>
+    <a href="https://discord.gg/yFbXUYybbA" class="btn btn-outline">Support Server</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="stat-n">15</span><div class="stat-l">Live Stocks</div></div>
+    <div class="stat"><span class="stat-n">30+</span><div class="stat-l">Commands</div></div>
+    <div class="stat"><span class="stat-n">?</span><div class="stat-l">Prefix</div></div>
+    <div class="stat"><span class="stat-n">6/15</span><div class="stat-l">Launch</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<div class="features" id="features">
+  <div class="section-label">What's included</div>
+  <div class="section-title">Everything in one bot</div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-icon">💰</span>
+      <div class="feat-name">Economy System</div>
+      <div class="feat-desc">Wallet, bank, transfers, daily work, and full leaderboards with seasonal resets.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">📈</span>
+      <div class="feat-name">Stock Market</div>
+      <div class="feat-desc">15 companies, prices shift every 30 minutes. Buy low, sell high, watch your portfolio grow.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">⛓️</span>
+      <div class="feat-name">Slave System</div>
+      <div class="feat-desc">Buy other players, own their earnings until their debt is paid. They can fight back.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🎰</span>
+      <div class="feat-name">Gambling</div>
+      <div class="feat-desc">Coinflip, slots, dice. Risk what you've earned or lose it all in a single bet.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">⚔️</span>
+      <div class="feat-name">PvP</div>
+      <div class="feat-desc">Rob players, duel rivals, and outbid buyers trying to purchase you.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🏆</span>
+      <div class="feat-name">Seasons</div>
+      <div class="feat-desc">Compete for seasonal dominance. Full wipes give everyone a fresh shot at the top.</div>
+    </div>
+  </div>
+</div>
+
+<div class="cmd-preview" id="commands">
+  <div class="section-label">Commands</div>
+  <div class="section-title">Prefix: <span style="color:var(--accent);font-family:'DM Mono',monospace">?</span></div>
+  <div class="cmd-grid">
+    <div class="cmd-group">
+      <div class="cmd-group-title">Economy</div>
+      <div class="cmd-row"><span class="cmd-name">?balance</span><span class="cmd-info">Check wallet & bank</span></div>
+      <div class="cmd-row"><span class="cmd-name">?work</span><span class="cmd-info">Earn $25–$100 (5min cd)</span></div>
+      <div class="cmd-row"><span class="cmd-name">?deposit [amt]</span><span class="cmd-info">Move cash to bank</span></div>
+      <div class="cmd-row"><span class="cmd-name">?withdraw [amt]</span><span class="cmd-info">Pull cash from bank</span></div>
+      <div class="cmd-row"><span class="cmd-name">?give @user [amt]</span><span class="cmd-info">Send money to someone</span></div>
+      <div class="cmd-row"><span class="cmd-name">?rob @user</span><span class="cmd-info">Steal from their wallet</span></div>
+    </div>
+    <div class="cmd-group">
+      <div class="cmd-group-title">Stocks</div>
+      <div class="cmd-row"><span class="cmd-name">?stocks</span><span class="cmd-info">View the live market</span></div>
+      <div class="cmd-row"><span class="cmd-name">?buystock [T] [n]</span><span class="cmd-info">Buy shares</span></div>
+      <div class="cmd-row"><span class="cmd-name">?sellstock [T] [n]</span><span class="cmd-info">Sell shares</span></div>
+      <div class="cmd-row"><span class="cmd-name">?portfolio</span><span class="cmd-info">View holdings & P&L</span></div>
+      <div class="cmd-row"><span class="cmd-name">?stockhistory [T]</span><span class="cmd-info">Last 10 price points</span></div>
+    </div>
+    <div class="cmd-group">
+      <div class="cmd-group-title">Gambling</div>
+      <div class="cmd-row"><span class="cmd-name">?coinflip [bet]</span><span class="cmd-info">Heads or tails</span></div>
+      <div class="cmd-row"><span class="cmd-name">?slots [bet]</span><span class="cmd-info">Spin the machine</span></div>
+      <div class="cmd-row"><span class="cmd-name">?dice [bet]</span><span class="cmd-info">Roll against the bot</span></div>
+      <div class="cmd-row"><span class="cmd-name">?duel @user</span><span class="cmd-info">Challenge someone</span></div>
+    </div>
+    <div class="cmd-group">
+      <div class="cmd-group-title">Slave System</div>
+      <div class="cmd-row"><span class="cmd-name">?buy @user</span><span class="cmd-info">Purchase a player</span></div>
+      <div class="cmd-row"><span class="cmd-name">?outbid [amt]</span><span class="cmd-info">Escape a purchase attempt</span></div>
+      <div class="cmd-row"><span class="cmd-name">?slave</span><span class="cmd-info">Check your debt status</span></div>
+      <div class="cmd-row"><span class="cmd-name">?slavepanel</span><span class="cmd-info">Manage your slaves</span></div>
+      <div class="cmd-row"><span class="cmd-name">?slavelist</span><span class="cmd-info">Owner leaderboard</span></div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;text-align:center;">
+    <a href="commands.html" class="btn btn-outline">View full docs →</a>
+  </div>
+</div>
+
+<div class="callout-wrap">
+  <div class="callout">
+    <div>
+      <div class="callout-tag">Unique Feature</div>
+      <h2>Own your<br/>rivals</h2>
+      <p style="margin-top:0.75rem;">The slave system turns the economy into a power game. Buy players, collect their work earnings, and expand your empire — or outbid your buyer and stay free.</p>
+    </div>
+    <div class="callout-steps">
+      <div class="cstep"><span class="cstep-n">01</span><span class="cstep-t"><b>Buy a player</b> for 2× their wallet balance</span></div>
+      <div class="cstep"><span class="cstep-n">02</span><span class="cstep-t"><b>They work</b> — every dollar goes straight to you</span></div>
+      <div class="cstep"><span class="cstep-n">03</span><span class="cstep-t"><b>Targets can outbid</b> within 2 minutes to escape</span></div>
+      <div class="cstep"><span class="cstep-n">04</span><span class="cstep-t"><b>Renew their contract</b> — pay half their debt to double it</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="market">
+  <div class="section-label">Stock Market</div>
+  <div class="section-title">15 companies. Prices shift every 30 min.</div>
+  <div class="ticker-row">
+    <div class="ticker"><div class="ticker-sym">VLR</div><div class="ticker-co">Velera Inc</div><div class="ticker-px">$142.50</div><div class="ticker-ch up">▲ +2.3%</div></div>
+    <div class="ticker"><div class="ticker-sym">TGLC</div><div class="ticker-co">TGLSC Corp</div><div class="ticker-px">$210.00</div><div class="ticker-ch dn">▼ −1.1%</div></div>
+    <div class="ticker"><div class="ticker-sym">LNR</div><div class="ticker-co">LUNAR Research</div><div class="ticker-px">$320.00</div><div class="ticker-ch up">▲ +0.8%</div></div>
+    <div class="ticker"><div class="ticker-sym">NRGX</div><div class="ticker-co">NRG Exchange</div><div class="ticker-px">$500.00</div><div class="ticker-ch up">▲ +3.1%</div></div>
+    <div class="ticker"><div class="ticker-sym">VOID</div><div class="ticker-co">Void Network</div><div class="ticker-px">$5.55</div><div class="ticker-ch dn">▼ −0.5%</div></div>
+    <div class="ticker"><div class="ticker-sym">OVCL</div><div class="ticker-co">Overcloaked Corp</div><div class="ticker-px">$185.30</div><div class="ticker-ch up">▲ +1.7%</div></div>
+    <div class="ticker"><div class="ticker-sym">HDR</div><div class="ticker-co">Hydra Network</div><div class="ticker-px">$88.88</div><div class="ticker-ch up">▲ +0.4%</div></div>
+    <div class="ticker"><div class="ticker-sym">DOGE</div><div class="ticker-co">Doge UB</div><div class="ticker-px">$0.85</div><div class="ticker-ch dn">▼ −2.9%</div></div>
+  </div>
+</div>
+
+<section class="launch">
+  <div class="launch-date">Public Launch</div>
+  <h2>June 15, 2026</h2>
+  <p>The economy detonates. Get your server ready.</p>
+  <div class="countdown">
+    <div class="cblock"><span class="cn" id="days">--</span><div class="cl">Days</div></div>
+    <div class="cblock"><span class="cn" id="hours">--</span><div class="cl">Hours</div></div>
+    <div class="cblock"><span class="cn" id="mins">--</span><div class="cl">Minutes</div></div>
+    <div class="cblock"><span class="cn" id="secs">--</span><div class="cl">Seconds</div></div>
+  </div>
+  <br/>
+  <div class="hero-actions" style="justify-content:center;">
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="btn btn-fill">Add to Discord</a>
+    <a href="https://discord.gg/yFbXUYybbA" class="btn btn-outline">Support Server</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo"><img src="economicbomb.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;"> Economic<span> Bomb</span></div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="commands.html">Commands</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands">Invite</a>
+    <a href="https://discord.gg/yFbXUYybbA">Support</a>
+  </div>
+  <div class="footer-copy">© 2026 Economic Bomb</div>
+</footer>
+
+<script>
+const launch = new Date('2026-06-15T00:00:00');
+function tick() {
+  const diff = launch - new Date();
+  if (diff <= 0) { ['days','hours','mins','secs'].forEach(id => document.getElementById(id).textContent = '00'); return; }
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('days').textContent  = pad(Math.floor(diff/86400000));
+  document.getElementById('hours').textContent = pad(Math.floor(diff%86400000/3600000));
+  document.getElementById('mins').textContent  = pad(Math.floor(diff%3600000/60000));
+  document.getElementById('secs').textContent  = pad(Math.floor(diff%60000/1000));
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
