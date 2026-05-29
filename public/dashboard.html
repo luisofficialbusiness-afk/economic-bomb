@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0e0e10;
+  --surface: #18181b;
+  --border: #27272a;
+  --text: #fafafa;
+  --muted: #71717a;
+  --subtle: #3f3f46;
+  --accent: #eab308;
+  --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444;
+  --green: #22c55e;
+  --blue: #60a5fa;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo img { height: 26px; width: 26px; object-fit: contain; border-radius: 5px; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.75rem; }
+.guild-pill { display: flex; align-items: center; gap: 0.5rem; background: var(--surface); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 100px; font-size: 0.78rem; color: var(--muted); }
+.guild-pill strong { color: var(--text); font-weight: 500; }
+.user-pill { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+.user-pill img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+
+/* LAYOUT */
+.layout { display: flex; padding-top: 60px; min-height: 100vh; }
+.sidebar {
+  width: 210px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+}
+.sb-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 1rem; margin-bottom: 0.4rem; margin-top: 1.25rem; }
+.sb-label:first-child { margin-top: 0; }
+.sb-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 500; color: var(--muted); border-radius: 6px; margin: 1px 0.4rem; cursor: pointer; transition: color 0.15s, background 0.15s; }
+.sb-link:hover { color: var(--text); background: var(--surface); }
+.sb-link.active { color: var(--text); background: var(--surface); }
+
+.content { flex: 1; padding: 2.5rem; min-width: 0; }
+
+/* SECTIONS */
+.section { display: none; }
+.section.active { display: block; }
+.sec-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.sec-title { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 2rem; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+.stat-card { background: var(--bg); padding: 1.5rem; transition: background 0.15s; }
+.stat-card:hover { background: var(--surface); }
+.stat-n { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.03em; display: block; font-family: 'DM Mono', monospace; }
+.stat-n.yellow { color: var(--accent); }
+.stat-n.green { color: var(--green); }
+.stat-n.blue { color: var(--blue); }
+.stat-n.red { color: var(--red); }
+.stat-l { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+/* TABLE */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+.table-head { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-head h3 { font-size: 0.9rem; font-weight: 600; }
+.table-head span { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0.75rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+td { padding: 0.85rem 1.5rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.mono { font-family: 'DM Mono', monospace; }
+.pos { display: inline-block; width: 22px; height: 22px; border-radius: 5px; background: var(--border); text-align: center; line-height: 22px; font-size: 0.72rem; font-weight: 600; }
+.pos.gold { background: var(--accent-dim); color: var(--accent); }
+.pos.silver { background: rgba(161,161,170,0.12); color: #a1a1aa; }
+.pos.bronze { background: rgba(180,120,60,0.12); color: #b4783c; }
+
+/* STOCK GRID */
+.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+.stock-card { background: var(--bg); padding: 1.25rem 1.5rem; transition: background 0.15s; }
+.stock-card:hover { background: var(--surface); }
+.stock-ticker { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.2rem; }
+.stock-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+.stock-price { font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+.stock-change { font-size: 0.75rem; font-family: 'DM Mono', monospace; margin-top: 0.2rem; }
+.up { color: var(--green); }
+.dn { color: var(--red); }
+
+/* ACTIONS */
+.action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.action-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: border-color 0.15s; }
+.action-card:hover { border-color: var(--subtle); }
+.action-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+.action-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.65; }
+.input-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+input[type=text], input[type=number] {
+  flex: 1; min-width: 0;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.55rem 0.9rem; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 0.82rem;
+  outline: none; transition: border-color 0.15s;
+}
+input:focus { border-color: var(--subtle); }
+input::placeholder { color: var(--muted); }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1.2rem; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+  border: none; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+}
+.btn:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-fill { background: var(--accent); color: #000; }
+.btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.5rem; font-size: 0.85rem; font-weight: 500; z-index: 999; transform: translateY(120%); transition: transform 0.25s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+.toast.show { transform: translateY(0); }
+.toast.success { border-color: var(--green); color: var(--green); }
+.toast.error { border-color: var(--red); color: var(--red); }
+
+.loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
+
+@media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <img src="economicbomb.webp" alt="Economic Bomb"/>
+    Economic<span class="logo-dot"> Bomb</span>
+  </a>
+  <div class="nav-right">
+    <div class="guild-pill">⚡ <strong id="guildName">Loading...</strong></div>
+    <div class="user-pill">
+      <img id="userAvatar" src="" alt=""/>
+      <span id="userName"></span>
+    </div>
+    <a href="/auth/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-label">Overview</div>
+    <a class="sb-link active" data-section="overview">📊 Overview</a>
+    <div class="sb-label">Economy</div>
+    <a class="sb-link" data-section="leaderboard">🏆 Leaderboard</a>
+    <a class="sb-link" data-section="slaves">⛓️ Slaves</a>
+    <a class="sb-link" data-section="stocks">📈 Stocks</a>
+    <div class="sb-label">Admin</div>
+    <a class="sb-link" data-section="actions">⚡ Actions</a>
+  </aside>
+
+  <main class="content">
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="sec-overview">
+      <div class="sec-label">Dashboard</div>
+      <div class="sec-title">Overview</div>
+      <div class="stat-grid" id="statsGrid">
+        <div class="loading">Loading stats...</div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="section" id="sec-leaderboard">
+      <div class="sec-label">Economy</div>
+      <div class="sec-title">Leaderboard</div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>Top Players</h3><span id="lbCount"></span></div>
+        <table>
+          <thead><tr><th>#</th><th>User ID</th><th>Wallet</th><th>Bank</th><th>Total</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLAVES -->
+    <div class="section" id="sec-slaves">
+      <div class="sec-label">Economy</div>
+      <div class="sec-title">Slave System</div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>Active Slaves</h3><span id="slaveCount"></span></div>
+        <table>
+          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt</th><th>Total Earned</th></tr></thead>
+          <tbody id="slaveBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STOCKS -->
+    <div class="section" id="sec-stocks">
+      <div class="sec-label">Economy</div>
+      <div class="sec-title">Stock Market</div>
+      <div class="stock-grid" id="stockGrid">
+        <div class="loading">Loading stocks...</div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="section" id="sec-actions">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Actions</div>
+      <div class="action-grid">
+
+        <div class="action-card">
+          <h3>💰 Give Money</h3>
+          <p>Add money directly to a player's wallet using their Discord user ID.</p>
+          <div class="input-row">
+            <input type="text" id="jackpotUser" placeholder="User ID"/>
+            <input type="number" id="jackpotAmount" placeholder="Amount"/>
+          </div>
+          <button class="btn btn-fill" onclick="giveJackpot()">Give Money</button>
+        </div>
+
+        <div class="action-card">
+          <h3>🔧 Set Balance</h3>
+          <p>Override a player's wallet balance to an exact amount.</p>
+          <div class="input-row">
+            <input type="text" id="setBalUser" placeholder="User ID"/>
+            <input type="number" id="setBalAmount" placeholder="New balance"/>
+          </div>
+          <button class="btn btn-outline" onclick="setBalance()">Set Balance</button>
+        </div>
+
+        <div class="action-card">
+          <h3>⏱️ Reset Cooldowns</h3>
+          <p>Clear all active cooldowns for all players. Takes effect on next bot restart.</p>
+          <button class="btn btn-danger" onclick="resetCooldowns()">Reset All Cooldowns</button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Nav
+document.querySelectorAll('.sb-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    link.classList.add('active');
+    const sec = link.dataset.section;
+    document.getElementById('sec-' + sec).classList.add('active');
+    loadSection(sec);
+  });
+});
+
+// Toast
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// Session
+async function loadMe() {
+  const res = await fetch('/api/me');
+  const data = await res.json();
+  document.getElementById('guildName').textContent = data.guild?.name || 'Unknown';
+  document.getElementById('userName').textContent = data.user?.username || '';
+  document.getElementById('userAvatar').src = data.user?.avatar || '';
+}
+
+// Section loader
+function loadSection(sec) {
+  if (sec === 'overview') loadStats();
+  if (sec === 'leaderboard') loadLeaderboard();
+  if (sec === 'slaves') loadSlaves();
+  if (sec === 'stocks') loadStocks();
+}
+
+// Stats
+async function loadStats() {
+  const res = await fetch('/api/stats');
+  const d = await res.json();
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><span class="stat-n blue">${d.totalPlayers}</span><div class="stat-l">Total Players</div></div>
+    <div class="stat-card"><span class="stat-n yellow">$${Number(d.totalCirculation).toLocaleString()}</span><div class="stat-l">In Circulation</div></div>
+    <div class="stat-card"><span class="stat-n green">$${Number(d.totalWallet).toLocaleString()}</span><div class="stat-l">Total Wallet</div></div>
+    <div class="stat-card"><span class="stat-n blue">$${Number(d.totalBank).toLocaleString()}</span><div class="stat-l">Total Bank</div></div>
+    <div class="stat-card"><span class="stat-n red">${d.totalSlaves}</span><div class="stat-l">Active Slaves</div></div>
+    <div class="stat-card"><span class="stat-n yellow">$${Number(d.richestTotal).toLocaleString()}</span><div class="stat-l">Richest Player</div></div>
+  `;
+}
+
+// Leaderboard
+async function loadLeaderboard() {
+  const res = await fetch('/api/leaderboard');
+  const data = await res.json();
+  document.getElementById('lbCount').textContent = data.length + ' players';
+  const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+  document.getElementById('lbBody').innerHTML = data.map((u, i) => `
+    <tr>
+      <td><span class="pos ${posClass(i)}">${i + 1}</span></td>
+      <td class="mono">${u.userId}</td>
+      <td class="mono">$${u.balance.toLocaleString()}</td>
+      <td class="mono">$${u.bank.toLocaleString()}</td>
+      <td class="mono" style="color:var(--accent)">$${u.total.toLocaleString()}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="loading">No players yet</td></tr>';
+}
+
+// Slaves
+async function loadSlaves() {
+  const res = await fetch('/api/slaves');
+  const data = await res.json();
+  document.getElementById('slaveCount').textContent = data.length + ' active';
+  document.getElementById('slaveBody').innerHTML = data.map(s => `
+    <tr>
+      <td class="mono">${s.userId}</td>
+      <td class="mono">${s.ownerId}</td>
+      <td class="mono" style="color:var(--red)">$${s.debt.toLocaleString()}</td>
+      <td class="mono" style="color:var(--green)">$${(s.totalEarned||0).toLocaleString()}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="loading">No active slaves</td></tr>';
+}
+
+// Stocks
+async function loadStocks() {
+  const res = await fetch('/api/stocks');
+  const stocks = await res.json();
+  document.getElementById('stockGrid').innerHTML = stocks.map(s => {
+    const hist = s.history || [];
+    const prev = hist.length >= 2 ? hist[hist.length - 2] : s.price;
+    const change = prev ? ((s.price - prev) / prev * 100).toFixed(2) : '0.00';
+    const dir = change >= 0 ? 'up' : 'dn';
+    const arrow = change >= 0 ? '▲' : '▼';
+    return `
+      <div class="stock-card">
+        <div class="stock-ticker">${s.ticker}</div>
+        <div class="stock-name">${s.name}</div>
+        <div class="stock-price">$${s.price.toFixed(2)}</div>
+        <div class="stock-change ${dir}">${arrow} ${Math.abs(change)}%</div>
+      </div>
+    `;
+  }).join('') || '<div class="loading">No stocks found</div>';
+}
+
+// Actions
+async function giveJackpot() {
+  const userId = document.getElementById('jackpotUser').value.trim();
+  const amount = document.getElementById('jackpotAmount').value;
+  if (!userId || !amount) return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/jackpot', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Money given!') : toast('❌ ' + d.error, 'error');
+}
+
+async function setBalance() {
+  const userId = document.getElementById('setBalUser').value.trim();
+  const amount = document.getElementById('setBalAmount').value;
+  if (!userId || amount === '') return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Balance updated!') : toast('❌ ' + d.error, 'error');
+}
+
+async function resetCooldowns() {
+  await fetch('/api/action/reset-cooldowns', { method: 'POST' });
+  toast('✅ Cooldowns cleared (restart bot to apply)');
+}
+
+// Init
+loadMe();
+loadStats();
+</script>
+</body>
+</html>
