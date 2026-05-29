@@ -29,27 +29,22 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:3000/auth/callback';
 const BOT_INVITE = process.env.BOT_INVITE || 'https://discord.com/oauth2/authorize?client_id=' + DISCORD_CLIENT_ID + '&permissions=274878385216&scope=bot+applications.commands';
 
-// ─── Auth middleware ───────────────────────────────────────────────
 function requireAuth(req, res, next) {
     if (!req.session.user) return res.redirect('/');
     next();
 }
 
-// ─── Routes ───────────────────────────────────────────────────────
 
-// Landing page
 app.get('/', (req, res) => {
     if (req.session.user && req.session.guild) return res.redirect('/dashboard');
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Discord OAuth2 login
 app.get('/auth/login', (req, res) => {
     const url = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify+guilds`;
     res.redirect(url);
 });
 
-// OAuth2 callback
 app.get('/auth/callback', async (req, res) => {
     const { code } = req.query;
     if (!code) return res.redirect('/');
@@ -70,22 +65,19 @@ app.get('/auth/callback', async (req, res) => {
         const tokenData = await tokenRes.json();
         if (!tokenData.access_token) return res.redirect('/');
 
-        // Get user info
         const userRes = await fetch('https://discord.com/api/users/@me', {
             headers: { Authorization: `Bearer ${tokenData.access_token}` }
         });
         const discordUser = await userRes.json();
 
-        // Get user's guilds
         const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
             headers: { Authorization: `Bearer ${tokenData.access_token}` }
         });
         const guilds = await guildsRes.json();
 
-        // Check which guilds the user OWNS and the bot is in
         const botGuilds = await getBotGuilds();
         const ownerGuilds = guilds.filter(g => {
-            const isOwner = (g.permissions & 0x8) === 0x8; // Administrator or owner
+            const isOwner = (g.permissions & 0x8) === 0x8; 
             const botPresent = botGuilds.includes(g.id);
             return isOwner && botPresent;
         });
@@ -99,11 +91,9 @@ app.get('/auth/callback', async (req, res) => {
         };
 
         if (ownerGuilds.length === 0) {
-            // Bot not in any of their servers — redirect to invite
             return res.redirect('/no-server');
         }
 
-        // Use first matching guild (can expand to guild picker later)
         req.session.guild = ownerGuilds[0];
         res.redirect('/dashboard');
 
@@ -113,34 +103,28 @@ app.get('/auth/callback', async (req, res) => {
     }
 });
 
-// No server page
+
 app.get('/no-server', (req, res) => {
     if (!req.session.user) return res.redirect('/');
     res.sendFile(path.join(__dirname, 'public', 'no-server.html'));
 });
 
-// Invite redirect
 app.get('/invite', (req, res) => res.redirect(BOT_INVITE));
 
-// Logout
 app.get('/auth/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/');
 });
 
-// Dashboard page
 app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// ─── API ──────────────────────────────────────────────────────────
 
-// Session info
 app.get('/api/me', requireAuth, (req, res) => {
     res.json({ user: req.session.user, guild: req.session.guild });
 });
 
-// Economy stats
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -164,7 +148,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-// Leaderboard
 app.get('/api/leaderboard', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -180,7 +163,6 @@ app.get('/api/leaderboard', requireAuth, async (req, res) => {
     }
 });
 
-// Slaves list
 app.get('/api/slaves', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -196,7 +178,6 @@ app.get('/api/slaves', requireAuth, async (req, res) => {
     }
 });
 
-// Stocks
 app.get('/api/stocks', requireAuth, async (req, res) => {
     try {
         const stocks = await Stock.find({});
@@ -211,9 +192,8 @@ app.get('/api/stocks', requireAuth, async (req, res) => {
     }
 });
 
-// Owner actions
+
 app.post('/api/action/reset-cooldowns', requireAuth, async (req, res) => {
-    // Signal the bot via a shared DB flag or just respond — bot reads this
     res.json({ success: true, message: 'Cooldowns cleared (restart bot to apply in-memory reset)' });
 });
 
@@ -247,7 +227,6 @@ app.post('/api/action/set-balance', requireAuth, express.json(), async (req, res
     }
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────
 async function getBotGuilds() {
     try {
         const res = await fetch('https://discord.com/api/users/@me/guilds', {
@@ -260,6 +239,5 @@ async function getBotGuilds() {
     }
 }
 
-// ─── Start ────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));

@@ -26,7 +26,6 @@ html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
 a { text-decoration: none; color: inherit; }
 
-/* NAV */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
   height: 60px; display: flex; align-items: center; justify-content: space-between;
@@ -45,7 +44,6 @@ nav {
 .nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
 .nav-link:hover { color: var(--text); background: var(--surface); }
 
-/* LAYOUT */
 .layout { display: flex; padding-top: 60px; min-height: 100vh; }
 .sidebar {
   width: 210px; flex-shrink: 0;
@@ -61,13 +59,11 @@ nav {
 
 .content { flex: 1; padding: 2.5rem; min-width: 0; }
 
-/* SECTIONS */
 .section { display: none; }
 .section.active { display: block; }
 .sec-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
 .sec-title { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 2rem; }
 
-/* STAT GRID */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
 .stat-card { background: var(--bg); padding: 1.5rem; transition: background 0.15s; }
 .stat-card:hover { background: var(--surface); }
@@ -78,7 +74,6 @@ nav {
 .stat-n.red { color: var(--red); }
 .stat-l { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
 
-/* TABLE */
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
 .table-head { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .table-head h3 { font-size: 0.9rem; font-weight: 600; }
@@ -94,7 +89,6 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .pos.silver { background: rgba(161,161,170,0.12); color: #a1a1aa; }
 .pos.bronze { background: rgba(180,120,60,0.12); color: #b4783c; }
 
-/* STOCK GRID */
 .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
 .stock-card { background: var(--bg); padding: 1.25rem 1.5rem; transition: background 0.15s; }
 .stock-card:hover { background: var(--surface); }
@@ -105,7 +99,6 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .up { color: var(--green); }
 .dn { color: var(--red); }
 
-/* ACTIONS */
 .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .action-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: border-color 0.15s; }
 .action-card:hover { border-color: var(--subtle); }
@@ -132,7 +125,6 @@ input::placeholder { color: var(--muted); }
 .btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .btn-danger { background: var(--red); color: #fff; }
 
-/* TOAST */
 .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.5rem; font-size: 0.85rem; font-weight: 500; z-index: 999; transform: translateY(120%); transition: transform 0.25s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 .toast.show { transform: translateY(0); }
 .toast.success { border-color: var(--green); color: var(--green); }
@@ -174,7 +166,6 @@ input::placeholder { color: var(--muted); }
 
   <main class="content">
 
-    <!-- OVERVIEW -->
     <div class="section active" id="sec-overview">
       <div class="sec-label">Dashboard</div>
       <div class="sec-title">Overview</div>
@@ -183,7 +174,6 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <!-- LEADERBOARD -->
     <div class="section" id="sec-leaderboard">
       <div class="sec-label">Economy</div>
       <div class="sec-title">Leaderboard</div>
@@ -196,7 +186,6 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <!-- SLAVES -->
     <div class="section" id="sec-slaves">
       <div class="sec-label">Economy</div>
       <div class="sec-title">Slave System</div>
@@ -209,7 +198,6 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <!-- STOCKS -->
     <div class="section" id="sec-stocks">
       <div class="sec-label">Economy</div>
       <div class="sec-title">Stock Market</div>
@@ -218,7 +206,6 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <!-- ACTIONS -->
     <div class="section" id="sec-actions">
       <div class="sec-label">Admin</div>
       <div class="sec-title">Actions</div>
@@ -259,7 +246,6 @@ input::placeholder { color: var(--muted); }
 <div class="toast" id="toast"></div>
 
 <script>
-// Nav
 document.querySelectorAll('.sb-link').forEach(link => {
   link.addEventListener('click', () => {
     document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
@@ -271,7 +257,6 @@ document.querySelectorAll('.sb-link').forEach(link => {
   });
 });
 
-// Toast
 function toast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -279,7 +264,6 @@ function toast(msg, type = 'success') {
   setTimeout(() => t.className = 'toast', 3000);
 }
 
-// Session
 async function loadMe() {
   const res = await fetch('/api/me');
   const data = await res.json();
@@ -288,7 +272,6 @@ async function loadMe() {
   document.getElementById('userAvatar').src = data.user?.avatar || '';
 }
 
-// Section loader
 function loadSection(sec) {
   if (sec === 'overview') loadStats();
   if (sec === 'leaderboard') loadLeaderboard();
@@ -296,7 +279,6 @@ function loadSection(sec) {
   if (sec === 'stocks') loadStocks();
 }
 
-// Stats
 async function loadStats() {
   const res = await fetch('/api/stats');
   const d = await res.json();
@@ -310,7 +292,6 @@ async function loadStats() {
   `;
 }
 
-// Leaderboard
 async function loadLeaderboard() {
   const res = await fetch('/api/leaderboard');
   const data = await res.json();
@@ -327,7 +308,6 @@ async function loadLeaderboard() {
   `).join('') || '<tr><td colspan="5" class="loading">No players yet</td></tr>';
 }
 
-// Slaves
 async function loadSlaves() {
   const res = await fetch('/api/slaves');
   const data = await res.json();
@@ -342,7 +322,6 @@ async function loadSlaves() {
   `).join('') || '<tr><td colspan="4" class="loading">No active slaves</td></tr>';
 }
 
-// Stocks
 async function loadStocks() {
   const res = await fetch('/api/stocks');
   const stocks = await res.json();
@@ -363,7 +342,6 @@ async function loadStocks() {
   }).join('') || '<div class="loading">No stocks found</div>';
 }
 
-// Actions
 async function giveJackpot() {
   const userId = document.getElementById('jackpotUser').value.trim();
   const amount = document.getElementById('jackpotAmount').value;
@@ -387,7 +365,6 @@ async function resetCooldowns() {
   toast('✅ Cooldowns cleared (restart bot to apply)');
 }
 
-// Init
 loadMe();
 loadStats();
 </script>

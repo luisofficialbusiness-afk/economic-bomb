@@ -34,7 +34,6 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* NAV */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
   height: 60px;
@@ -66,7 +65,6 @@ nav {
 }
 .nav-btn:hover { opacity: 0.88; }
 
-/* HERO */
 .hero {
   min-height: 100vh;
   display: flex; flex-direction: column;
@@ -113,7 +111,6 @@ nav {
 .btn-fill { background: var(--accent); color: #000; }
 .btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 
-/* STATS ROW */
 .stats {
   display: flex; gap: 0; margin-top: 4.5rem;
   border: 1px solid var(--border); border-radius: 12px;
@@ -136,10 +133,8 @@ nav {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* DIVIDER */
 .divider { height: 1px; background: var(--border); }
 
-/* FEATURES */
 .features { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
 .section-label {
   font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
@@ -173,7 +168,6 @@ nav {
 }
 .feat-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
 
-/* CMD PREVIEW */
 .cmd-preview { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
 .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .cmd-group {
@@ -203,7 +197,6 @@ nav {
 }
 .cmd-info { font-size: 0.8rem; color: var(--muted); }
 
-/* SLAVE CALLOUT */
 .callout-wrap { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
 .callout {
   background: var(--surface);
@@ -241,7 +234,6 @@ nav {
 .cstep-t { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
 .cstep-t b { color: var(--text); font-weight: 500; }
 
-/* MARKET */
 .market { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
 .ticker-row {
   display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem;
@@ -262,7 +254,6 @@ nav {
 .up { color: var(--green); }
 .dn { color: var(--red); }
 
-/* LAUNCH */
 .launch {
   padding: 6rem 2rem;
   text-align: center;
@@ -297,7 +288,6 @@ nav {
 }
 .cl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
 
-/* FOOTER */
 footer {
   padding: 2rem;
   border-top: 1px solid var(--border);
@@ -329,8 +319,9 @@ footer {
     <a href="#features" class="nav-link">Features</a>
     <a href="#commands" class="nav-link">Commands</a>
     <a href="commands.html" class="nav-link">Docs</a>
+    <a href="login.html" class="nav-link">Dashboard</a>
     <a href="https://discord.gg/yFbXUYybbA" class="nav-link">Support</a>
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="nav-btn">Add to Discord</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="nav-btn">Add to Discord</a>
   </div>
 </nav>
 
@@ -342,7 +333,7 @@ footer {
   <h1>The Discord bot that<br/><em>blows up</em> your economy</h1>
   <p>Stock market, slave system, gambling, seasonal resets — all in one bot. Built for competitive servers.</p>
   <div class="hero-actions">
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="btn btn-fill">Add to Discord</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="btn btn-fill">Add to Discord</a>
     <a href="https://discord.gg/yFbXUYybbA" class="btn btn-outline">Support Server</a>
   </div>
   <div class="stats">
@@ -477,7 +468,7 @@ footer {
   </div>
   <br/>
   <div class="hero-actions" style="justify-content:center;">
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands" class="btn btn-fill">Add to Discord</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="btn btn-fill">Add to Discord</a>
     <a href="https://discord.gg/yFbXUYybbA" class="btn btn-outline">Support Server</a>
   </div>
 </section>
@@ -487,7 +478,7 @@ footer {
   <div class="footer-links">
     <a href="#features">Features</a>
     <a href="commands.html">Commands</a>
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=274878385216&integration_type=0&scope=bot+applications.commands">Invite</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands">Invite</a>
     <a href="https://discord.gg/yFbXUYybbA">Support</a>
   </div>
   <div class="footer-copy">© 2026 Economic Bomb</div>
