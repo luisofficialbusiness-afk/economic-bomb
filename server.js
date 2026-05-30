@@ -48,7 +48,6 @@ async function getBotGuilds() {
     }
 }
 
-// PAGES
 app.get('/', (req, res) => {
     if (req.session.user && req.session.guild) return res.redirect('/dashboard');
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -102,7 +101,6 @@ app.get('/auth/callback', async (req, res) => {
                 : `https://cdn.discordapp.com/embed/avatars/0.png`
         };
 
-        // Store all admin guilds so server switcher works
         req.session.guilds = adminGuilds.map(g => ({
             id: g.id,
             name: g.name,
@@ -143,7 +141,6 @@ app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Switch server mid-session
 app.post('/api/switch-guild', requireAuth, (req, res) => {
     const { guildId } = req.body;
     const guild = req.session.guilds?.find(g => g.id === guildId);
@@ -152,17 +149,14 @@ app.post('/api/switch-guild', requireAuth, (req, res) => {
     res.json({ success: true, guild });
 });
 
-// API: ME
 app.get('/api/me', requireAuth, (req, res) => {
     res.json({ user: req.session.user, guild: req.session.guild });
 });
 
-// API: GUILDS (for server switcher)
 app.get('/api/guilds', requireAuth, (req, res) => {
     res.json(req.session.guilds || []);
 });
 
-// API: STATS
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -175,8 +169,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
         const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
         const totalDebt = slaves.reduce((a, s) => a + (s.debt || 0), 0);
         const totalSlaveEarned = slaves.reduce((a, s) => a + (s.totalEarned || 0), 0);
-
-        // Top owner by slave count
         const ownerCounts = {};
         for (const s of slaves) ownerCounts[s.ownerId] = (ownerCounts[s.ownerId] || 0) + 1;
         const topOwner = Object.entries(ownerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
@@ -200,7 +192,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-// API: LEADERBOARD
 app.get('/api/leaderboard', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -219,7 +210,6 @@ app.get('/api/leaderboard', requireAuth, async (req, res) => {
     }
 });
 
-// API: SLAVES
 app.get('/api/slaves', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -236,11 +226,9 @@ app.get('/api/slaves', requireAuth, async (req, res) => {
     }
 });
 
-// API: STOCKS
 app.get('/api/stocks', requireAuth, async (req, res) => {
     try {
         const stocks = await Stock.find({ guildId });
-        // Get holder counts from portfolios
         const portfolios = await Portfolio.find({});
         const holderCounts = {};
         for (const p of portfolios) {
@@ -261,7 +249,6 @@ app.get('/api/stocks', requireAuth, async (req, res) => {
     }
 });
 
-// API: STOCK HOLDERS
 app.get('/api/stocks/:ticker/holders', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -278,7 +265,6 @@ app.get('/api/stocks/:ticker/holders', requireAuth, async (req, res) => {
     }
 });
 
-// API: CHANNELS
 app.get('/api/channels', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -317,7 +303,6 @@ app.post('/api/channels', requireAuth, async (req, res) => {
     }
 });
 
-// ACTIONS
 app.post('/api/action/jackpot', requireAuth, async (req, res) => {
     const { amount, userId } = req.body;
     if (!amount || !userId) return res.status(400).json({ error: 'Missing fields' });
@@ -399,7 +384,6 @@ app.post('/api/action/reset-cooldowns', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// API: ECONOMY HEALTH SCORE
 app.get('/api/health', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -413,19 +397,15 @@ app.get('/api/health', requireAuth, async (req, res) => {
         let score = 100;
         const issues = [];
 
-        // Too much debt relative to circulation
         if (totalCirculation > 0 && totalDebt / totalCirculation > 0.5) {
             score -= 20; issues.push({ type: 'warn', msg: 'Slave debt is over 50% of total circulation' });
         }
-        // Wealth concentration — top player has > 40% of all money
         if (users.length > 1) {
             const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
             const topShare = (sorted[0].balance + sorted[0].bank) / totalCirculation;
             if (topShare > 0.4) { score -= 15; issues.push({ type: 'warn', msg: `Top player holds ${(topShare*100).toFixed(0)}% of all money` }); }
         }
-        // Very low player count
         if (users.length < 3) { score -= 10; issues.push({ type: 'info', msg: 'Less than 3 players in the economy' }); }
-        // High slave ratio
         if (users.length > 0 && slaves.length / users.length > 0.3) {
             score -= 15; issues.push({ type: 'warn', msg: `${(slaves.length/users.length*100).toFixed(0)}% of players are enslaved` });
         }
@@ -435,16 +415,11 @@ app.get('/api/health', requireAuth, async (req, res) => {
         res.json({ score: Math.max(0, score), grade, color, issues });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
-
-// API: ANTI-CHEAT
 app.get('/api/anticheat', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
         const users = await User.find({ guildId });
         const flags = [];
-
-        // Max possible legit balance: very generous ceiling
-        // Work: $100 max per 2min. In 24h = 720 cycles = $72,000 max possible from work alone
         const MAX_LEGIT = 500000;
 
         for (const u of users) {
@@ -461,8 +436,6 @@ app.get('/api/anticheat', requireAuth, async (req, res) => {
                 });
             }
         }
-
-        // Balance spike: anyone with > $50,000 in wallet (highly suspicious for sitting cash)
         for (const u of users) {
             if (u.balance > 50000 && !flags.find(f => f.userId === u.userId)) {
                 flags.push({
@@ -480,8 +453,6 @@ app.get('/api/anticheat', requireAuth, async (req, res) => {
         res.json(flags);
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
-
-// API: BANS
 app.get('/api/bans', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -517,8 +488,6 @@ app.post('/api/bans/remove', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
-
-// API: MODULES
 app.get('/api/modules', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -543,8 +512,6 @@ app.post('/api/modules', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
-
-// ACTION: WIPE ALL SLAVE DEBT
 app.post('/api/action/wipe-slave-debt', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
@@ -552,8 +519,6 @@ app.post('/api/action/wipe-slave-debt', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
-
-// ACTION: REMOVE STOCK FROM PLAYER
 app.post('/api/action/remove-stock', requireAuth, async (req, res) => {
     const { userId, ticker } = req.body;
     if (!userId || !ticker) return res.status(400).json({ error: 'Missing fields' });
