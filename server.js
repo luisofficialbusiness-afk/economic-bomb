@@ -39,7 +39,7 @@ function requireAuth(req, res, next) {
 async function getBotGuilds() {
     try {
         const res = await fetch('https://discord.com/api/users/@me/guilds', {
-            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
+            headers: { Authorization: `Bot ${process.env.TOKEN}` }
         });
         const guilds = await res.json();
         return guilds.map(g => g.id);
@@ -280,11 +280,14 @@ app.get('/api/stocks/:ticker/holders', requireAuth, async (req, res) => {
 app.get('/api/channels', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
-        // Fetch channels from Discord bot API
         const channelsRes = await fetch(`https://discord.com/api/guilds/${guildId}/channels`, {
-            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
+            headers: { Authorization: `Bot ${process.env.TOKEN}` }
         });
         const allChannels = await channelsRes.json();
+        if (!Array.isArray(allChannels)) {
+            console.error('Discord channels API error:', allChannels);
+            return res.status(500).json({ error: 'Discord API error: ' + JSON.stringify(allChannels) });
+        }
         const textChannels = allChannels
             .filter(c => c.type === 0)
             .sort((a, b) => a.position - b.position)
@@ -293,6 +296,7 @@ app.get('/api/channels', requireAuth, async (req, res) => {
         const config = await Config.findOne({ guildId });
         res.json({ channels: textChannels, allowed: config?.allowedChannels || [] });
     } catch (err) {
+        console.error('Channels error:', err);
         res.status(500).json({ error: 'Failed to fetch channels' });
     }
 });
