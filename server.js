@@ -39,7 +39,7 @@ function requireAuth(req, res, next) {
 async function getBotGuilds() {
     try {
         const res = await fetch('https://discord.com/api/users/@me/guilds', {
-            headers: { Authorization: `Bot ${process.env.TOKEN}` }
+            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
         });
         const guilds = await res.json();
         return guilds.map(g => g.id);
@@ -285,7 +285,7 @@ app.get('/api/channels', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
         const channelsRes = await fetch(`https://discord.com/api/guilds/${guildId}/channels`, {
-            headers: { Authorization: `Bot ${process.env.TOKEN}` }
+            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
         });
         const allChannels = await channelsRes.json();
         if (!Array.isArray(allChannels)) {
