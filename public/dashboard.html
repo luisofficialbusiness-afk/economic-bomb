@@ -7,43 +7,76 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
 :root {
-  --bg: #0e0e10;
-  --surface: #18181b;
-  --border: #27272a;
-  --text: #fafafa;
-  --muted: #71717a;
-  --subtle: #3f3f46;
-  --accent: #eab308;
-  --accent-dim: rgba(234,179,8,0.12);
-  --red: #ef4444;
-  --green: #22c55e;
-  --blue: #60a5fa;
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444; --green: #22c55e; --blue: #60a5fa;
 }
-
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
 a { text-decoration: none; color: inherit; }
 
+/* NAV */
 nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   height: 60px; display: flex; align-items: center; justify-content: space-between;
-  padding: 0 2rem;
-  background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  padding: 0 1.5rem;
+  background: rgba(14,14,16,0.9); backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
 }
-.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; }
 .logo img { height: 26px; width: 26px; object-fit: contain; border-radius: 5px; }
 .logo-dot { color: var(--accent); }
-.nav-right { display: flex; align-items: center; gap: 0.75rem; }
-.guild-pill { display: flex; align-items: center; gap: 0.5rem; background: var(--surface); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 100px; font-size: 0.78rem; color: var(--muted); }
-.guild-pill strong { color: var(--text); font-weight: 500; }
+.nav-right { display: flex; align-items: center; gap: 0.6rem; }
+
+/* SERVER SWITCHER */
+.server-switcher { position: relative; }
+.server-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.35rem 0.75rem;
+  font-size: 0.82rem; font-weight: 500; color: var(--text);
+  cursor: pointer; transition: border-color 0.15s;
+  user-select: none;
+}
+.server-btn:hover { border-color: var(--subtle); }
+.server-btn .chevron { color: var(--muted); font-size: 0.65rem; transition: transform 0.2s; }
+.server-btn.open .chevron { transform: rotate(180deg); }
+.server-icon { width: 20px; height: 20px; border-radius: 4px; background: var(--border); object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+
+.server-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: none; z-index: 200;
+  overflow: hidden;
+}
+.server-dropdown.open { display: block; }
+.dropdown-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0.75rem 1rem 0.4rem; }
+.server-option {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 1rem; cursor: pointer;
+  transition: background 0.1s; font-size: 0.85rem;
+}
+.server-option:hover { background: rgba(255,255,255,0.04); }
+.server-option.active { background: var(--accent-dim); }
+.server-option.active .srv-name { color: var(--accent); }
+.srv-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--border); object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+.srv-name { font-weight: 500; font-size: 0.85rem; }
+.srv-role { font-size: 0.72rem; color: var(--muted); }
+.srv-check { margin-left: auto; color: var(--accent); font-size: 0.75rem; }
+.dropdown-divider { height: 1px; background: var(--border); margin: 0.4rem 0; }
+.dropdown-action { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; cursor: pointer; font-size: 0.82rem; color: var(--muted); transition: color 0.15s, background 0.1s; }
+.dropdown-action:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
 .user-pill { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
 .user-pill img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); }
-.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.82rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
 .nav-link:hover { color: var(--text); background: var(--surface); }
 
+/* LAYOUT */
 .layout { display: flex; padding-top: 60px; min-height: 100vh; }
 .sidebar {
   width: 210px; flex-shrink: 0;
@@ -58,29 +91,35 @@ nav {
 .sb-link.active { color: var(--text); background: var(--surface); }
 
 .content { flex: 1; padding: 2.5rem; min-width: 0; }
-
 .section { display: none; }
 .section.active { display: block; }
 .sec-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
 .sec-title { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 2rem; }
 
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+/* STATS */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
 .stat-card { background: var(--bg); padding: 1.5rem; transition: background 0.15s; }
 .stat-card:hover { background: var(--surface); }
-.stat-n { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.03em; display: block; font-family: 'DM Mono', monospace; }
+.stat-n { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.03em; display: block; font-family: 'DM Mono', monospace; }
 .stat-n.yellow { color: var(--accent); }
 .stat-n.green { color: var(--green); }
 .stat-n.blue { color: var(--blue); }
 .stat-n.red { color: var(--red); }
+.stat-n.muted { color: var(--muted); }
 .stat-l { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+.stat-sub { font-size: 0.72rem; color: var(--subtle); margin-top: 0.15rem; font-family: 'DM Mono', monospace; }
 
+/* TABLES */
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
-.table-head { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-head { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .table-head h3 { font-size: 0.9rem; font-weight: 600; }
 .table-head span { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+.table-search { display: flex; align-items: center; gap: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 0.4rem 0.75rem; margin-left: auto; }
+.table-search input { background: none; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; width: 160px; }
+.table-search input::placeholder { color: var(--muted); }
 table { width: 100%; border-collapse: collapse; }
 th { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0.75rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border); }
-td { padding: 0.85rem 1.5rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+td { padding: 0.85rem 1.5rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: rgba(255,255,255,0.02); }
 .mono { font-family: 'DM Mono', monospace; }
@@ -88,51 +127,100 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .pos.gold { background: var(--accent-dim); color: var(--accent); }
 .pos.silver { background: rgba(161,161,170,0.12); color: #a1a1aa; }
 .pos.bronze { background: rgba(180,120,60,0.12); color: #b4783c; }
+.tag { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.tag-red { background: rgba(239,68,68,0.1); color: var(--red); }
+.tag-green { background: rgba(34,197,94,0.1); color: var(--green); }
+.tag-yellow { background: var(--accent-dim); color: var(--accent); }
+.tag-blue { background: rgba(96,165,250,0.1); color: var(--blue); }
 
-.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
-.stock-card { background: var(--bg); padding: 1.25rem 1.5rem; transition: background 0.15s; }
+/* STOCKS */
+.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
+.stock-card { background: var(--bg); padding: 1.25rem 1.5rem; transition: background 0.15s; cursor: pointer; }
 .stock-card:hover { background: var(--surface); }
 .stock-ticker { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.2rem; }
 .stock-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
-.stock-price { font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+.stock-price { font-family: 'DM Mono', monospace; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
 .stock-change { font-size: 0.75rem; font-family: 'DM Mono', monospace; margin-top: 0.2rem; }
+.stock-holders { font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
 .up { color: var(--green); }
 .dn { color: var(--red); }
 
+/* STOCK DETAIL MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 600px; overflow: hidden; }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 1rem; font-weight: 600; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 0.2rem; transition: color 0.15s; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 1.5rem; }
+.modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+.modal-stat { background: var(--bg); padding: 1rem; text-align: center; }
+.modal-stat-n { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 600; }
+.modal-stat-l { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+
+/* CHANNELS */
+.channel-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
+.channel-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1rem; }
+.channel-name { font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+.channel-hash { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.9rem; }
+.toggle { position: relative; width: 38px; height: 20px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 100px; cursor: pointer; transition: background 0.2s; }
+.toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; background: var(--muted); border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s, background 0.2s; }
+.toggle input:checked + .toggle-slider { background: var(--accent-dim); border: 1px solid rgba(234,179,8,0.3); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--accent); }
+.channels-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.channels-header h3 { font-size: 0.9rem; font-weight: 600; }
+.channels-note { font-size: 0.78rem; color: var(--muted); }
+
+/* ACTIONS */
 .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .action-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: border-color 0.15s; }
 .action-card:hover { border-color: var(--subtle); }
 .action-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
 .action-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.65; }
 .input-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-input[type=text], input[type=number] {
+input[type=text], input[type=number], select {
   flex: 1; min-width: 0;
   background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
   padding: 0.55rem 0.9rem; color: var(--text);
-  font-family: 'DM Mono', monospace; font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
   outline: none; transition: border-color 0.15s;
 }
-input:focus { border-color: var(--subtle); }
+select option { background: var(--surface); }
+input:focus, select:focus { border-color: var(--subtle); }
 input::placeholder { color: var(--muted); }
-.btn {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.5rem 1.2rem; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
-  border: none; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
-}
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.2rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; transition: opacity 0.15s, transform 0.15s; }
 .btn:hover { transform: translateY(-1px); opacity: 0.9; }
 .btn-fill { background: var(--accent); color: #000; }
 .btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .btn-danger { background: var(--red); color: #fff; }
+.btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+
+.loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
+
+/* CHART BAR */
+.mini-bar { display: flex; align-items: flex-end; gap: 2px; height: 32px; }
+.bar-seg { background: var(--border); border-radius: 2px; flex: 1; transition: background 0.15s; }
+.bar-seg.up { background: rgba(34,197,94,0.4); }
+.bar-seg.dn { background: rgba(239,68,68,0.4); }
+
+/* ECONOMY BREAKDOWN */
+.breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+.breakdown-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+.breakdown-card h3 { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; }
+.breakdown-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.breakdown-row:last-child { border-bottom: none; }
+.breakdown-label { color: var(--muted); }
+.breakdown-val { font-family: 'DM Mono', monospace; font-weight: 500; }
 
 .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.5rem; font-size: 0.85rem; font-weight: 500; z-index: 999; transform: translateY(120%); transition: transform 0.25s; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 .toast.show { transform: translateY(0); }
 .toast.success { border-color: var(--green); color: var(--green); }
 .toast.error { border-color: var(--red); color: var(--red); }
 
-.loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
-
-@media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } }
+@media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } .breakdown-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -143,7 +231,19 @@ input::placeholder { color: var(--muted); }
     Economic<span class="logo-dot"> Bomb</span>
   </a>
   <div class="nav-right">
-    <div class="guild-pill">⚡ <strong id="guildName">Loading...</strong></div>
+    <div class="server-switcher">
+      <div class="server-btn" id="serverBtn" onclick="toggleServerDropdown()">
+        <div class="server-icon" id="currentServerIcon">⚡</div>
+        <span id="currentServerName">Loading...</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="server-dropdown" id="serverDropdown">
+        <div class="dropdown-label">Your Servers</div>
+        <div id="serverList"><div style="padding:0.75rem 1rem;font-size:0.82rem;color:var(--muted)">Loading servers...</div></div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-action" onclick="window.location='/select-server'">+ Add to another server</div>
+      </div>
+    </div>
     <div class="user-pill">
       <img id="userAvatar" src="" alt=""/>
       <span id="userName"></span>
@@ -161,27 +261,35 @@ input::placeholder { color: var(--muted); }
     <a class="sb-link" data-section="slaves">⛓️ Slaves</a>
     <a class="sb-link" data-section="stocks">📈 Stocks</a>
     <div class="sb-label">Admin</div>
+    <a class="sb-link" data-section="channels">💬 Command Channels</a>
     <a class="sb-link" data-section="actions">⚡ Actions</a>
   </aside>
 
   <main class="content">
-
-    <div class="section active" id="sec-overview">
+        <div class="section active" id="sec-overview">
       <div class="sec-label">Dashboard</div>
       <div class="sec-title">Overview</div>
       <div class="stat-grid" id="statsGrid">
         <div class="loading">Loading stats...</div>
       </div>
+      <div class="breakdown-grid" id="breakdownGrid"></div>
     </div>
 
     <div class="section" id="sec-leaderboard">
       <div class="sec-label">Economy</div>
       <div class="sec-title">Leaderboard</div>
       <div class="table-wrap">
-        <div class="table-head"><h3>Top Players</h3><span id="lbCount"></span></div>
+        <div class="table-head">
+          <h3>Top Players</h3>
+          <div class="table-search">
+            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+            <input type="text" placeholder="Search user ID..." oninput="filterTable('lbBody', this.value)"/>
+          </div>
+          <span id="lbCount"></span>
+        </div>
         <table>
-          <thead><tr><th>#</th><th>User ID</th><th>Wallet</th><th>Bank</th><th>Total</th></tr></thead>
-          <tbody id="lbBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          <thead><tr><th>#</th><th>User ID</th><th>Wallet</th><th>Bank</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -189,11 +297,21 @@ input::placeholder { color: var(--muted); }
     <div class="section" id="sec-slaves">
       <div class="sec-label">Economy</div>
       <div class="sec-title">Slave System</div>
+      <div class="stat-grid" id="slaveStats" style="margin-bottom:1.5rem">
+        <div class="loading">Loading...</div>
+      </div>
       <div class="table-wrap">
-        <div class="table-head"><h3>Active Slaves</h3><span id="slaveCount"></span></div>
+        <div class="table-head">
+          <h3>Active Slaves</h3>
+          <div class="table-search">
+            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+            <input type="text" placeholder="Search..." oninput="filterTable('slaveBody', this.value)"/>
+          </div>
+          <span id="slaveCount"></span>
+        </div>
         <table>
-          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt</th><th>Total Earned</th></tr></thead>
-          <tbody id="slaveBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt Remaining</th><th>Total Earned</th><th>Progress</th></tr></thead>
+          <tbody id="slaveBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -203,6 +321,34 @@ input::placeholder { color: var(--muted); }
       <div class="sec-title">Stock Market</div>
       <div class="stock-grid" id="stockGrid">
         <div class="loading">Loading stocks...</div>
+      </div>
+      <div class="table-wrap" id="holdersSection" style="display:none">
+        <div class="table-head">
+          <h3 id="holdersTitle">Holders</h3>
+          <span id="holdersCount"></span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>User ID</th><th>Shares</th><th>Avg Buy Price</th><th>Current Value</th><th>P&L</th></tr></thead>
+          <tbody id="holdersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-channels">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Command Channels</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:500px">Choose which channels bot commands can be used in. Toggle off to block commands in that channel.</p>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Text Channels</h3>
+          <span id="channelsSaved" style="color:var(--green);font-size:0.78rem;display:none">✓ Saved</span>
+        </div>
+        <div style="padding:1.25rem 1.5rem">
+          <div class="channel-list" id="channelList">
+            <div class="loading">Loading channels...</div>
+          </div>
+          <button class="btn btn-fill" onclick="saveChannels()">Save Changes</button>
+        </div>
       </div>
     </div>
 
@@ -232,8 +378,36 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
+          <h3>🏦 Set Bank</h3>
+          <p>Override a player's bank balance to an exact amount.</p>
+          <div class="input-row">
+            <input type="text" id="setBankUser" placeholder="User ID"/>
+            <input type="number" id="setBankAmount" placeholder="New bank balance"/>
+          </div>
+          <button class="btn btn-outline" onclick="setBank()">Set Bank</button>
+        </div>
+
+        <div class="action-card">
+          <h3>📈 Fix Stock Price</h3>
+          <p>Manually set a stock's price to correct pump & dump activity.</p>
+          <div class="input-row">
+            <select id="stockTicker">
+              <option value="">Select ticker...</option>
+            </select>
+            <input type="number" id="stockNewPrice" placeholder="New price"/>
+          </div>
+          <button class="btn btn-outline" onclick="fixStock()">Set Price</button>
+        </div>
+
+        <div class="action-card">
+          <h3>⚡ Tick Stock Market</h3>
+          <p>Manually trigger a stock market fluctuation — same ±3% logic as the 30-minute auto update.</p>
+          <button class="btn btn-outline" onclick="tickStocks()">Run Market Tick</button>
+        </div>
+
+        <div class="action-card">
           <h3>⏱️ Reset Cooldowns</h3>
-          <p>Clear all active cooldowns for all players. Takes effect on next bot restart.</p>
+          <p>Clear all active cooldowns for all players immediately.</p>
           <button class="btn btn-danger" onclick="resetCooldowns()">Reset All Cooldowns</button>
         </div>
 
@@ -243,9 +417,32 @@ input::placeholder { color: var(--muted); }
   </main>
 </div>
 
+<div class="modal-overlay" id="stockModal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Stock Details</div>
+      <button class="modal-close" onclick="closeStockModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stats" id="modalStats"></div>
+      <div class="table-wrap" style="margin:0">
+        <div class="table-head"><h3>Shareholders</h3><span id="modalHoldersCount"></span></div>
+        <table>
+          <thead><tr><th>#</th><th>User ID</th><th>Shares</th><th>Avg Buy</th><th>Value</th><th>P&L</th></tr></thead>
+          <tbody id="modalHoldersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+let currentGuildId = null;
+let allStocks = [];
+let allowedChannels = new Set();
+
 document.querySelectorAll('.sb-link').forEach(link => {
   link.addEventListener('click', () => {
     document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
@@ -257,6 +454,47 @@ document.querySelectorAll('.sb-link').forEach(link => {
   });
 });
 
+function toggleServerDropdown() {
+  const btn = document.getElementById('serverBtn');
+  const dd = document.getElementById('serverDropdown');
+  btn.classList.toggle('open');
+  dd.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.server-switcher')) {
+    document.getElementById('serverBtn').classList.remove('open');
+    document.getElementById('serverDropdown').classList.remove('open');
+  }
+});
+
+async function loadServers() {
+  try {
+    const res = await fetch('/api/guilds');
+    const guilds = await res.json();
+    const list = document.getElementById('serverList');
+    list.innerHTML = guilds.map(g => `
+      <div class="server-option ${g.id === currentGuildId ? 'active' : ''}" onclick="switchServer('${g.id}','${g.name}')">
+        <div class="srv-icon">${g.icon ? `<img src="${g.icon}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"/>` : g.name.charAt(0)}</div>
+        <div>
+          <div class="srv-name">${g.name}</div>
+          <div class="srv-role">${g.isAdmin ? 'Admin' : 'Member'}</div>
+        </div>
+        ${g.id === currentGuildId ? '<span class="srv-check">✓</span>' : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('serverList').innerHTML = '<div style="padding:0.75rem 1rem;font-size:0.82rem;color:var(--muted)">Could not load servers</div>';
+  }
+}
+
+function switchServer(id, name) {
+  currentGuildId = id;
+  document.getElementById('currentServerName').textContent = name;
+  document.getElementById('serverBtn').classList.remove('open');
+  document.getElementById('serverDropdown').classList.remove('open');
+  window.location = '/dashboard?guild=' + id;
+}
+
 function toast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -264,12 +502,23 @@ function toast(msg, type = 'success') {
   setTimeout(() => t.className = 'toast', 3000);
 }
 
+function filterTable(tbodyId, q) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.querySelectorAll('tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
 async function loadMe() {
-  const res = await fetch('/api/me');
-  const data = await res.json();
-  document.getElementById('guildName').textContent = data.guild?.name || 'Unknown';
-  document.getElementById('userName').textContent = data.user?.username || '';
-  document.getElementById('userAvatar').src = data.user?.avatar || '';
+  try {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    currentGuildId = data.guild?.id;
+    document.getElementById('currentServerName').textContent = data.guild?.name || 'Unknown';
+    document.getElementById('userName').textContent = data.user?.username || '';
+    document.getElementById('userAvatar').src = data.user?.avatar || '';
+    loadServers();
+  } catch(e) {}
 }
 
 function loadSection(sec) {
@@ -277,70 +526,200 @@ function loadSection(sec) {
   if (sec === 'leaderboard') loadLeaderboard();
   if (sec === 'slaves') loadSlaves();
   if (sec === 'stocks') loadStocks();
+  if (sec === 'channels') loadChannels();
 }
 
 async function loadStats() {
-  const res = await fetch('/api/stats');
-  const d = await res.json();
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><span class="stat-n blue">${d.totalPlayers}</span><div class="stat-l">Total Players</div></div>
-    <div class="stat-card"><span class="stat-n yellow">$${Number(d.totalCirculation).toLocaleString()}</span><div class="stat-l">In Circulation</div></div>
-    <div class="stat-card"><span class="stat-n green">$${Number(d.totalWallet).toLocaleString()}</span><div class="stat-l">Total Wallet</div></div>
-    <div class="stat-card"><span class="stat-n blue">$${Number(d.totalBank).toLocaleString()}</span><div class="stat-l">Total Bank</div></div>
-    <div class="stat-card"><span class="stat-n red">${d.totalSlaves}</span><div class="stat-l">Active Slaves</div></div>
-    <div class="stat-card"><span class="stat-n yellow">$${Number(d.richestTotal).toLocaleString()}</span><div class="stat-l">Richest Player</div></div>
-  `;
+  try {
+    const res = await fetch('/api/stats');
+    const d = await res.json();
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><span class="stat-n blue">${d.totalPlayers}</span><div class="stat-l">Total Players</div></div>
+      <div class="stat-card"><span class="stat-n yellow">$${Number(d.totalCirculation).toLocaleString()}</span><div class="stat-l">In Circulation</div></div>
+      <div class="stat-card"><span class="stat-n green">$${Number(d.totalWallet).toLocaleString()}</span><div class="stat-l">Total in Wallets</div></div>
+      <div class="stat-card"><span class="stat-n blue">$${Number(d.totalBank).toLocaleString()}</span><div class="stat-l">Total in Banks</div></div>
+      <div class="stat-card"><span class="stat-n red">${d.totalSlaves}</span><div class="stat-l">Active Slaves</div></div>
+      <div class="stat-card"><span class="stat-n yellow">$${Number(d.richestTotal).toLocaleString()}</span><div class="stat-l">Richest Player</div></div>
+      <div class="stat-card"><span class="stat-n muted">${d.totalDebt ? '$'+Number(d.totalDebt).toLocaleString() : '$0'}</span><div class="stat-l">Total Slave Debt</div></div>
+      <div class="stat-card"><span class="stat-n green">${d.avgBalance ? '$'+Number(d.avgBalance).toFixed(0) : '$0'}</span><div class="stat-l">Avg Player Balance</div></div>
+    `;
+    document.getElementById('breakdownGrid').innerHTML = `
+      <div class="breakdown-card">
+        <h3>Economy Breakdown</h3>
+        <div class="breakdown-row"><span class="breakdown-label">Wallet %</span><span class="breakdown-val">${d.totalCirculation ? ((d.totalWallet/d.totalCirculation)*100).toFixed(1) : 0}%</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Bank %</span><span class="breakdown-val">${d.totalCirculation ? ((d.totalBank/d.totalCirculation)*100).toFixed(1) : 0}%</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Richest Player</span><span class="breakdown-val" style="color:var(--accent)">${d.richestId || '—'}</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Brokest Player</span><span class="breakdown-val">${d.brokestId || '—'}</span></div>
+      </div>
+      <div class="breakdown-card">
+        <h3>Slave Economy</h3>
+        <div class="breakdown-row"><span class="breakdown-label">Active Slaves</span><span class="breakdown-val" style="color:var(--red)">${d.totalSlaves || 0}</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Total Debt</span><span class="breakdown-val">$${Number(d.totalDebt||0).toLocaleString()}</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Total Earned</span><span class="breakdown-val" style="color:var(--green)">$${Number(d.totalSlaveEarned||0).toLocaleString()}</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Top Owner</span><span class="breakdown-val" style="color:var(--accent)">${d.topOwner || '—'}</span></div>
+      </div>
+    `;
+  } catch(e) { document.getElementById('statsGrid').innerHTML = '<div class="loading">Failed to load stats</div>'; }
 }
 
 async function loadLeaderboard() {
-  const res = await fetch('/api/leaderboard');
-  const data = await res.json();
-  document.getElementById('lbCount').textContent = data.length + ' players';
-  const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-  document.getElementById('lbBody').innerHTML = data.map((u, i) => `
-    <tr>
-      <td><span class="pos ${posClass(i)}">${i + 1}</span></td>
-      <td class="mono">${u.userId}</td>
-      <td class="mono">$${u.balance.toLocaleString()}</td>
-      <td class="mono">$${u.bank.toLocaleString()}</td>
-      <td class="mono" style="color:var(--accent)">$${u.total.toLocaleString()}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="5" class="loading">No players yet</td></tr>';
+  try {
+    const res = await fetch('/api/leaderboard');
+    const data = await res.json();
+    document.getElementById('lbCount').textContent = data.length + ' players';
+    const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    document.getElementById('lbBody').innerHTML = data.map((u, i) => `
+      <tr>
+        <td><span class="pos ${posClass(i)}">${i+1}</span></td>
+        <td class="mono">${u.userId}</td>
+        <td class="mono">$${Number(u.balance).toLocaleString()}</td>
+        <td class="mono">$${Number(u.bank).toLocaleString()}</td>
+        <td class="mono" style="color:var(--accent)">$${Number(u.total).toLocaleString()}</td>
+        <td>${u.isEnslave ? '<span class="tag tag-red">⛓️ Enslaved</span>' : '<span class="tag tag-green">Free</span>'}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="loading">No players yet</td></tr>';
+  } catch(e) {}
 }
 
 async function loadSlaves() {
-  const res = await fetch('/api/slaves');
-  const data = await res.json();
-  document.getElementById('slaveCount').textContent = data.length + ' active';
-  document.getElementById('slaveBody').innerHTML = data.map(s => `
-    <tr>
-      <td class="mono">${s.userId}</td>
-      <td class="mono">${s.ownerId}</td>
-      <td class="mono" style="color:var(--red)">$${s.debt.toLocaleString()}</td>
-      <td class="mono" style="color:var(--green)">$${(s.totalEarned||0).toLocaleString()}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="4" class="loading">No active slaves</td></tr>';
+  try {
+    const res = await fetch('/api/slaves');
+    const data = await res.json();
+    document.getElementById('slaveCount').textContent = data.length + ' active';
+    const totalDebt = data.reduce((a,b) => a + b.debt, 0);
+    const totalEarned = data.reduce((a,b) => a + (b.totalEarned||0), 0);
+    document.getElementById('slaveStats').innerHTML = `
+      <div class="stat-card"><span class="stat-n red">${data.length}</span><div class="stat-l">Active Slaves</div></div>
+      <div class="stat-card"><span class="stat-n yellow">$${totalDebt.toLocaleString()}</span><div class="stat-l">Total Debt</div></div>
+      <div class="stat-card"><span class="stat-n green">$${totalEarned.toLocaleString()}</span><div class="stat-l">Total Earned by Slaves</div></div>
+    `;
+    document.getElementById('slaveBody').innerHTML = data.map(s => {
+      const pct = s.originalDebt ? Math.min(100, ((s.totalEarned||0)/s.originalDebt*100)).toFixed(0) : 0;
+      return `
+        <tr>
+          <td class="mono">${s.userId}</td>
+          <td class="mono">${s.ownerId}</td>
+          <td class="mono" style="color:var(--red)">$${Number(s.debt).toLocaleString()}</td>
+          <td class="mono" style="color:var(--green)">$${Number(s.totalEarned||0).toLocaleString()}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="width:${pct}%;height:100%;background:var(--green);border-radius:3px"></div>
+              </div>
+              <span style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap">${pct}%</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="5" class="loading">No active slaves</td></tr>';
+  } catch(e) {}
 }
 
 async function loadStocks() {
-  const res = await fetch('/api/stocks');
-  const stocks = await res.json();
-  document.getElementById('stockGrid').innerHTML = stocks.map(s => {
-    const hist = s.history || [];
-    const prev = hist.length >= 2 ? hist[hist.length - 2] : s.price;
-    const change = prev ? ((s.price - prev) / prev * 100).toFixed(2) : '0.00';
-    const dir = change >= 0 ? 'up' : 'dn';
-    const arrow = change >= 0 ? '▲' : '▼';
-    return `
-      <div class="stock-card">
-        <div class="stock-ticker">${s.ticker}</div>
-        <div class="stock-name">${s.name}</div>
-        <div class="stock-price">$${s.price.toFixed(2)}</div>
-        <div class="stock-change ${dir}">${arrow} ${Math.abs(change)}%</div>
-      </div>
-    `;
-  }).join('') || '<div class="loading">No stocks found</div>';
+  try {
+    const res = await fetch('/api/stocks');
+    allStocks = await res.json();
+    const select = document.getElementById('stockTicker');
+    if (select) select.innerHTML = '<option value="">Select ticker...</option>' + allStocks.map(s => `<option value="${s.ticker}">${s.ticker} — ${s.name}</option>`).join('');
+    document.getElementById('stockGrid').innerHTML = allStocks.map(s => {
+      const hist = s.history || [];
+      const prev = hist.length >= 2 ? hist[hist.length-2] : s.price;
+      const change = prev ? ((s.price-prev)/prev*100).toFixed(2) : '0.00';
+      const dir = change >= 0 ? 'up' : 'dn';
+      const arrow = change >= 0 ? '▲' : '▼';
+      const bars = hist.slice(-8).map((p,i,arr) => {
+        const c = i > 0 ? (p >= arr[i-1] ? 'up' : 'dn') : '';
+        return `<div class="bar-seg ${c}" style="height:${Math.max(20,Math.min(100,(p/s.price)*32))+'px'}"></div>`;
+      }).join('');
+      const holderCount = s.holderCount || 0;
+      return `
+        <div class="stock-card" onclick="openStockModal('${s.ticker}')">
+          <div class="stock-ticker">${s.ticker}</div>
+          <div class="stock-name">${s.name}</div>
+          <div class="stock-price">$${s.price.toFixed(2)}</div>
+          <div class="stock-change ${dir}">${arrow} ${Math.abs(change)}%</div>
+          <div class="mini-bar" style="margin-top:0.6rem">${bars}</div>
+          <div class="stock-holders">${holderCount} holder${holderCount !== 1 ? 's' : ''} · click to view</div>
+        </div>
+      `;
+    }).join('') || '<div class="loading">No stocks found</div>';
+  } catch(e) {}
 }
+
+async function openStockModal(ticker) {
+  const stock = allStocks.find(s => s.ticker === ticker);
+  if (!stock) return;
+  const hist = stock.history || [];
+  const prev = hist.length >= 2 ? hist[hist.length-2] : stock.price;
+  const change = prev ? ((stock.price-prev)/prev*100).toFixed(2) : '0.00';
+  document.getElementById('modalTitle').textContent = `${stock.name} (${ticker})`;
+  document.getElementById('modalStats').innerHTML = `
+    <div class="modal-stat"><div class="modal-stat-n" style="color:var(--accent)">$${stock.price.toFixed(2)}</div><div class="modal-stat-l">Current Price</div></div>
+    <div class="modal-stat"><div class="modal-stat-n ${change>=0?'up':'dn'}">${change>=0?'▲':'▼'} ${Math.abs(change)}%</div><div class="modal-stat-l">Last Change</div></div>
+    <div class="modal-stat"><div class="modal-stat-n">${stock.totalShares||0}</div><div class="modal-stat-l">Total Shares Out</div></div>
+  `;
+  document.getElementById('stockModal').classList.add('open');
+  try {
+    const res = await fetch('/api/stocks/' + ticker + '/holders');
+    const holders = await res.json();
+    document.getElementById('modalHoldersCount').textContent = holders.length + ' holders';
+    document.getElementById('modalHoldersBody').innerHTML = holders.map((h,i) => {
+      const value = (h.shares * stock.price).toFixed(2);
+      const pl = (h.shares * stock.price - h.shares * h.avgBuyPrice).toFixed(2);
+      const plColor = pl >= 0 ? 'var(--green)' : 'var(--red)';
+      return `
+        <tr>
+          <td>${i+1}</td>
+          <td class="mono">${h.userId}</td>
+          <td class="mono">${h.shares}</td>
+          <td class="mono">$${h.avgBuyPrice.toFixed(2)}</td>
+          <td class="mono">$${value}</td>
+          <td class="mono" style="color:${plColor}">${pl>=0?'+':''}$${pl}</td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="6" class="loading">No holders</td></tr>';
+  } catch(e) {
+    document.getElementById('modalHoldersBody').innerHTML = '<tr><td colspan="6" class="loading">Could not load holders</td></tr>';
+  }
+}
+
+function closeStockModal() { document.getElementById('stockModal').classList.remove('open'); }
+function closeModal(e) { if (e.target === document.getElementById('stockModal')) closeStockModal(); }
+
+async function loadChannels() {
+  try {
+    const res = await fetch('/api/channels');
+    const data = await res.json();
+    allowedChannels = new Set(data.allowed || []);
+    document.getElementById('channelList').innerHTML = data.channels.map(ch => `
+      <div class="channel-row">
+        <div class="channel-name">
+          <span class="channel-hash">#</span>
+          ${ch.name}
+          <span class="tag tag-blue" style="font-size:0.65rem;margin-left:0.25rem">${ch.type}</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" data-id="${ch.id}" ${allowedChannels.has(ch.id) || allowedChannels.size === 0 ? 'checked' : ''} onchange="markUnsaved()"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `).join('') || '<div style="color:var(--muted);font-size:0.85rem;padding:1rem 0">No channels found</div>';
+  } catch(e) {
+    document.getElementById('channelList').innerHTML = '<div style="color:var(--muted);font-size:0.85rem">Could not load channels</div>';
+  }
+}
+
+function markUnsaved() { document.getElementById('channelsSaved').style.display = 'none'; }
+
+async function saveChannels() {
+  const checked = [...document.querySelectorAll('#channelList input[type=checkbox]:checked')].map(i => i.dataset.id);
+  try {
+    await fetch('/api/channels', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ allowed: checked }) });
+    document.getElementById('channelsSaved').style.display = 'inline';
+    toast('✅ Channel settings saved!');
+  } catch(e) { toast('❌ Failed to save', 'error'); }
+}
+
 
 async function giveJackpot() {
   const userId = document.getElementById('jackpotUser').value.trim();
@@ -360,9 +739,34 @@ async function setBalance() {
   d.success ? toast('✅ Balance updated!') : toast('❌ ' + d.error, 'error');
 }
 
+async function setBank() {
+  const userId = document.getElementById('setBankUser').value.trim();
+  const amount = document.getElementById('setBankAmount').value;
+  if (!userId || amount === '') return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Bank updated!') : toast('❌ ' + d.error, 'error');
+}
+
+async function fixStock() {
+  const ticker = document.getElementById('stockTicker').value;
+  const price = document.getElementById('stockNewPrice').value;
+  if (!ticker || !price) return toast('Select a ticker and enter a price', 'error');
+  const res = await fetch('/api/action/set-stock', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ticker, price }) });
+  const d = await res.json();
+  d.success ? toast('✅ Stock price updated!') : toast('❌ ' + d.error, 'error');
+}
+
+async function tickStocks() {
+  const res = await fetch('/api/action/tick-stocks', { method: 'POST' });
+  const d = await res.json();
+  d.success ? toast('✅ Market ticked!') : toast('❌ Failed', 'error');
+  loadStocks();
+}
+
 async function resetCooldowns() {
   await fetch('/api/action/reset-cooldowns', { method: 'POST' });
-  toast('✅ Cooldowns cleared (restart bot to apply)');
+  toast('✅ Cooldowns cleared');
 }
 
 loadMe();
