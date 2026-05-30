@@ -228,6 +228,7 @@ app.get('/api/slaves', requireAuth, async (req, res) => {
 
 app.get('/api/stocks', requireAuth, async (req, res) => {
     try {
+        const guildId = req.session.guild.id;
         const stocks = await Stock.find({ guildId });
         const portfolios = await Portfolio.find({});
         const holderCounts = {};
@@ -352,6 +353,7 @@ app.post('/api/action/set-stock', requireAuth, async (req, res) => {
     const { ticker, price } = req.body;
     if (!ticker || price === undefined) return res.status(400).json({ error: 'Missing fields' });
     try {
+        const guildId = req.session.guild.id;
         const stock = await Stock.findOne({ guildId, ticker: ticker.toUpperCase() });
         if (!stock) return res.json({ success: false, error: 'Stock not found' });
         stock.price = parseFloat(price);
