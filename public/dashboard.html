@@ -220,6 +220,35 @@ input::placeholder { color: var(--muted); }
 .toast.success { border-color: var(--green); color: var(--green); }
 .toast.error { border-color: var(--red); color: var(--red); }
 
+/* HEALTH SCORE */
+.health-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.health-score { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
+.health-score.green { color: var(--green); }
+.health-score.yellow { color: var(--accent); }
+.health-score.red { color: var(--red); }
+.health-grade { font-size: 0.85rem; font-weight: 600; margin-top: 0.2rem; }
+.health-issues { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; }
+.health-issue { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 0.5rem; }
+.health-issue.warn { color: var(--accent); }
+.health-issue.high { color: var(--red); }
+.health-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 120px; }
+.health-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
+.health-fill.green { background: var(--green); }
+.health-fill.yellow { background: var(--accent); }
+.health-fill.red { background: var(--red); }
+
+/* ACTIVITY FEED */
+.activity-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.activity-text { flex: 1; color: var(--muted); }
+.activity-text strong { color: var(--text); }
+.activity-time { font-size: 0.72rem; color: var(--subtle); font-family: 'DM Mono', monospace; }
+
+/* ANTICHEAT SEVERITY */
+.sev-high { background: rgba(239,68,68,0.1); color: var(--red); }
+.sev-medium { background: rgba(234,179,8,0.1); color: var(--accent); }
+
 @media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } .breakdown-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -261,7 +290,10 @@ input::placeholder { color: var(--muted); }
     <a class="sb-link" data-section="slaves">⛓️ Slaves</a>
     <a class="sb-link" data-section="stocks">📈 Stocks</a>
     <div class="sb-label">Admin</div>
-    <a class="sb-link" data-section="channels">💬 Command Channels</a>
+    <a class="sb-link" data-section="anticheat">🛡️ Anti-Cheat</a>
+    <a class="sb-link" data-section="bans">🔨 Bans</a>
+    <a class="sb-link" data-section="modules">🧩 Modules</a>
+    <a class="sb-link" data-section="channels">💬 Channels</a>
     <a class="sb-link" data-section="actions">⚡ Actions</a>
   </aside>
 
@@ -269,10 +301,20 @@ input::placeholder { color: var(--muted); }
         <div class="section active" id="sec-overview">
       <div class="sec-label">Dashboard</div>
       <div class="sec-title">Overview</div>
+      <div id="healthBar" style="margin-bottom:1.5rem"></div>
       <div class="stat-grid" id="statsGrid">
         <div class="loading">Loading stats...</div>
       </div>
       <div class="breakdown-grid" id="breakdownGrid"></div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>🕐 Activity Feed</h3>
+          <span id="activityRefresh" style="font-size:0.72rem;color:var(--muted)">Auto-refreshes every 60s</span>
+        </div>
+        <div id="activityFeed" style="padding:1rem 1.5rem">
+          <div class="loading">No activity yet — this updates as players use commands</div>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="sec-leaderboard">
@@ -307,6 +349,7 @@ input::placeholder { color: var(--muted); }
             <span style="color:var(--muted);font-size:0.8rem">⌕</span>
             <input type="text" placeholder="Search..." oninput="filterTable('slaveBody', this.value)"/>
           </div>
+          <button class="btn btn-danger btn-sm" onclick="wipeSlaveDebt()" style="margin-left:auto">🗑️ Wipe All Debt</button>
           <span id="slaveCount"></span>
         </div>
         <table>
@@ -331,6 +374,60 @@ input::placeholder { color: var(--muted); }
           <thead><tr><th>#</th><th>User ID</th><th>Shares</th><th>Avg Buy Price</th><th>Current Value</th><th>P&L</th></tr></thead>
           <tbody id="holdersBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-anticheat">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Anti-Cheat</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Flags players with suspicious balances — impossible amounts or sudden spikes. Review and take action directly.</p>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Flagged Players</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadAnticheat()">↻ Refresh</button>
+        </div>
+        <table>
+          <thead><tr><th>User ID</th><th>Flag</th><th>Detail</th><th>Wallet</th><th>Bank</th><th>Actions</th></tr></thead>
+          <tbody id="anticheatBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-bans">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Bans</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Banned users get an error when using any bot command. The ban must be checked in your bot's command handler.</p>
+      <div class="action-card" style="margin-bottom:1.5rem;max-width:480px">
+        <h3>🔨 Ban User</h3>
+        <p>Enter a Discord user ID and an optional reason.</p>
+        <div class="input-row">
+          <input type="text" id="banUserId" placeholder="User ID"/>
+          <input type="text" id="banReason" placeholder="Reason (optional)"/>
+        </div>
+        <button class="btn btn-danger" onclick="banUser()">Ban User</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>Banned Users</h3><span id="banCount"></span></div>
+        <table>
+          <thead><tr><th>User ID</th><th>Reason</th><th>Banned At</th><th>Action</th></tr></thead>
+          <tbody id="bansBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-modules">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Modules</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Toggle bot features on or off for your server. Disabled commands will return an error when used. Save after making changes.</p>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Features</h3>
+          <span id="modulesSaved" style="color:var(--green);font-size:0.78rem;display:none">✓ Saved</span>
+        </div>
+        <div style="padding:1.25rem 1.5rem">
+          <div class="channel-list" id="moduleList"><div class="loading">Loading...</div></div>
+          <button class="btn btn-fill" onclick="saveModules()">Save Changes</button>
+        </div>
       </div>
     </div>
 
@@ -397,6 +494,16 @@ input::placeholder { color: var(--muted); }
             <input type="number" id="stockNewPrice" placeholder="New price"/>
           </div>
           <button class="btn btn-outline" onclick="fixStock()">Set Price</button>
+        </div>
+
+        <div class="action-card">
+          <h3>🗑️ Remove Stock from Player</h3>
+          <p>Remove all shares of a specific stock from a player's portfolio.</p>
+          <div class="input-row">
+            <input type="text" id="removeStockUser" placeholder="User ID"/>
+            <input type="text" id="removeStockTicker" placeholder="Ticker (e.g. TGLC)"/>
+          </div>
+          <button class="btn btn-danger" onclick="removeStock()">Remove Stock</button>
         </div>
 
         <div class="action-card">
@@ -528,12 +635,21 @@ async function loadMe() {
 }
 
 function loadSection(sec) {
-  if (sec === 'overview') loadStats();
+  if (sec === 'overview') { loadStats(); loadHealth(); }
   if (sec === 'leaderboard') loadLeaderboard();
   if (sec === 'slaves') loadSlaves();
   if (sec === 'stocks') loadStocks();
   if (sec === 'channels') loadChannels();
+  if (sec === 'anticheat') loadAnticheat();
+  if (sec === 'bans') loadBans();
+  if (sec === 'modules') loadModules();
 }
+
+// Auto-refresh every 60s
+setInterval(() => {
+  const active = document.querySelector('.section.active');
+  if (active) loadSection(active.id.replace('sec-', ''));
+}, 60000);
 
 async function loadStats() {
   try {
@@ -568,9 +684,30 @@ async function loadStats() {
   } catch(e) { document.getElementById('statsGrid').innerHTML = '<div class="loading">Failed to load stats</div>'; }
 }
 
+async function loadHealth() {
+  try {
+    const res = await fetch('/api/health');
+    const d = await res.json();
+    document.getElementById('healthBar').innerHTML = `
+      <div class="health-bar">
+        <div>
+          <div class="health-score ${d.color}">${d.score}</div>
+          <div class="health-grade" style="color:var(--${d.color === 'green' ? 'green' : d.color === 'yellow' ? 'accent' : 'red'})">${d.grade}</div>
+        </div>
+        <div style="flex:1">
+          <div class="health-track"><div class="health-fill ${d.color}" style="width:${d.score}%"></div></div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem">Economy Health Score</div>
+        </div>
+        <div class="health-issues">
+          ${d.issues.length ? d.issues.map(i => `<div class="health-issue ${i.type}">⚠ ${i.msg}</div>`).join('') : '<div class="health-issue">✓ No issues detected</div>'}
+        </div>
+      </div>
+    `;
+  } catch(e) {}
+}
+
 async function loadLeaderboard() {
   try {
-    const res = await fetch('/api/leaderboard');
     const data = await res.json();
     document.getElementById('lbCount').textContent = data.length + ' players';
     const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
@@ -730,6 +867,122 @@ async function saveChannels() {
 }
 
 
+async function loadAnticheat() {
+  try {
+    const res = await fetch('/api/anticheat');
+    const flags = await res.json();
+    document.getElementById('anticheatBody').innerHTML = flags.length ? flags.map(f => `
+      <tr>
+        <td class="mono">${f.userId}</td>
+        <td><span class="tag ${f.severity === 'high' ? 'tag-red sev-high' : 'tag-yellow sev-medium'}">${f.label}</span></td>
+        <td style="font-size:0.82rem;color:var(--muted)">${f.detail}</td>
+        <td class="mono">$${Number(f.balance).toLocaleString()}</td>
+        <td class="mono">$${Number(f.bank).toLocaleString()}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="quickResetBalance('${f.userId}')">Reset</button>
+          <button class="btn btn-outline btn-sm" style="margin-left:0.4rem" onclick="quickBan('${f.userId}')">Ban</button>
+        </td>
+      </tr>
+    `).join('') : '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--green)">✓ No flags detected</td></tr>';
+  } catch(e) {}
+}
+
+async function quickResetBalance(userId) {
+  const res = await fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) });
+  const d = await res.json();
+  d.success ? toast('✅ Balance reset to $0') : toast('❌ ' + d.error, 'error');
+  loadAnticheat();
+}
+
+async function quickBan(userId) {
+  const res = await fetch('/api/bans/add', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, reason: 'Flagged by anti-cheat' }) });
+  const d = await res.json();
+  d.success ? toast('✅ User banned') : toast('❌ Failed', 'error');
+}
+
+async function loadBans() {
+  try {
+    const res = await fetch('/api/bans');
+    const bans = await res.json();
+    document.getElementById('banCount').textContent = bans.length + ' banned';
+    document.getElementById('bansBody').innerHTML = bans.length ? bans.map(b => `
+      <tr>
+        <td class="mono">${b.userId}</td>
+        <td style="color:var(--muted);font-size:0.82rem">${b.reason || '—'}</td>
+        <td class="mono" style="color:var(--muted)">${b.bannedAt ? new Date(b.bannedAt).toLocaleDateString() : '—'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="unbanUser('${b.userId}')">Unban</button></td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">No banned users</td></tr>';
+  } catch(e) {}
+}
+
+async function banUser() {
+  const userId = document.getElementById('banUserId').value.trim();
+  const reason = document.getElementById('banReason').value.trim();
+  if (!userId) return toast('Enter a user ID', 'error');
+  const res = await fetch('/api/bans/add', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, reason }) });
+  const d = await res.json();
+  if (d.success) { toast('✅ User banned'); document.getElementById('banUserId').value = ''; document.getElementById('banReason').value = ''; loadBans(); }
+  else toast('❌ ' + d.error, 'error');
+}
+
+async function unbanUser(userId) {
+  const res = await fetch('/api/bans/remove', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId }) });
+  const d = await res.json();
+  d.success ? (toast('✅ User unbanned'), loadBans()) : toast('❌ Failed', 'error');
+}
+
+const MODULE_LABELS = {
+  work: '💼 Work', rob: '🦹 Rob', coinflip: '🪙 Coinflip', dice: '🎲 Dice',
+  slots: '🎰 Slots', duel: '⚔️ Duel', stocks: '📈 Stocks', slave: '⛓️ Slave System',
+  givemoney: '💸 Give Money', deposit: '🏦 Deposit', withdraw: '💵 Withdraw', leaderboard: '🏆 Leaderboard'
+};
+
+async function loadModules() {
+  try {
+    const res = await fetch('/api/modules');
+    const mods = await res.json();
+    document.getElementById('moduleList').innerHTML = Object.entries(MODULE_LABELS).map(([key, label]) => `
+      <div class="channel-row">
+        <div class="channel-name">${label}</div>
+        <label class="toggle">
+          <input type="checkbox" data-mod="${key}" ${mods[key] !== false ? 'checked' : ''} onchange="markModulesUnsaved()"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+function markModulesUnsaved() { document.getElementById('modulesSaved').style.display = 'none'; }
+
+async function saveModules() {
+  const inputs = document.querySelectorAll('#moduleList input[type=checkbox]');
+  const mods = {};
+  inputs.forEach(i => mods[i.dataset.mod] = i.checked);
+  try {
+    await fetch('/api/modules', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(mods) });
+    document.getElementById('modulesSaved').style.display = 'inline';
+    toast('✅ Modules saved!');
+  } catch(e) { toast('❌ Failed to save', 'error'); }
+}
+
+async function wipeSlaveDebt() {
+  if (!confirm('Wipe ALL slave debt and free all slaves? This cannot be undone.')) return;
+  const res = await fetch('/api/action/wipe-slave-debt', { method: 'POST' });
+  const d = await res.json();
+  d.success ? (toast('✅ All slave debt wiped!'), loadSlaves()) : toast('❌ Failed', 'error');
+}
+
+async function removeStock() {
+  const userId = document.getElementById('removeStockUser').value.trim();
+  const ticker = document.getElementById('removeStockTicker').value.trim().toUpperCase();
+  if (!userId || !ticker) return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/remove-stock', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, ticker }) });
+  const d = await res.json();
+  d.success ? toast(`✅ Removed ${ticker} from ${userId}`) : toast('❌ ' + d.error, 'error');
+}
+
 async function giveJackpot() {
   const userId = document.getElementById('jackpotUser').value.trim();
   const amount = document.getElementById('jackpotAmount').value;
@@ -780,6 +1033,7 @@ async function resetCooldowns() {
 
 loadMe();
 loadStats();
+loadHealth();
 </script>
 </body>
 </html>

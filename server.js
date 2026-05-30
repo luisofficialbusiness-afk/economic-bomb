@@ -137,9 +137,7 @@ app.get('/auth/logout', (req, res) => {
     res.redirect('/');
 });
 
-app.get('/select-server', requireAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'select-server.html'));
-});
+app.get("/select-server", requireAuth, (req, res) => { res.sendFile(path.join(__dirname, "public", "select-server.html")); });
 
 app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
@@ -399,6 +397,174 @@ app.post('/api/action/tick-stocks', requireAuth, async (req, res) => {
 
 app.post('/api/action/reset-cooldowns', requireAuth, (req, res) => {
     res.json({ success: true });
+});
+
+// API: ECONOMY HEALTH SCORE
+app.get('/api/health', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        const users = await User.find({ guildId });
+        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
+        const totalWallet = users.reduce((a, u) => a + (u.balance || 0), 0);
+        const totalBank = users.reduce((a, u) => a + (u.bank || 0), 0);
+        const totalCirculation = totalWallet + totalBank;
+        const totalDebt = slaves.reduce((a, s) => a + (s.debt || 0), 0);
+
+        let score = 100;
+        const issues = [];
+
+        // Too much debt relative to circulation
+        if (totalCirculation > 0 && totalDebt / totalCirculation > 0.5) {
+            score -= 20; issues.push({ type: 'warn', msg: 'Slave debt is over 50% of total circulation' });
+        }
+        // Wealth concentration — top player has > 40% of all money
+        if (users.length > 1) {
+            const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
+            const topShare = (sorted[0].balance + sorted[0].bank) / totalCirculation;
+            if (topShare > 0.4) { score -= 15; issues.push({ type: 'warn', msg: `Top player holds ${(topShare*100).toFixed(0)}% of all money` }); }
+        }
+        // Very low player count
+        if (users.length < 3) { score -= 10; issues.push({ type: 'info', msg: 'Less than 3 players in the economy' }); }
+        // High slave ratio
+        if (users.length > 0 && slaves.length / users.length > 0.3) {
+            score -= 15; issues.push({ type: 'warn', msg: `${(slaves.length/users.length*100).toFixed(0)}% of players are enslaved` });
+        }
+
+        const grade = score >= 85 ? 'Healthy' : score >= 65 ? 'Fair' : score >= 45 ? 'Poor' : 'Critical';
+        const color = score >= 85 ? 'green' : score >= 65 ? 'yellow' : score >= 45 ? 'red' : 'red';
+        res.json({ score: Math.max(0, score), grade, color, issues });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// API: ANTI-CHEAT
+app.get('/api/anticheat', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        const users = await User.find({ guildId });
+        const flags = [];
+
+        // Max possible legit balance: very generous ceiling
+        // Work: $100 max per 2min. In 24h = 720 cycles = $72,000 max possible from work alone
+        const MAX_LEGIT = 500000;
+
+        for (const u of users) {
+            const total = u.balance + u.bank;
+            if (total > MAX_LEGIT) {
+                flags.push({
+                    userId: u.userId,
+                    type: 'impossible_balance',
+                    label: 'Impossible Balance',
+                    detail: `$${total.toLocaleString()} — exceeds max possible earned`,
+                    severity: 'high',
+                    balance: u.balance,
+                    bank: u.bank
+                });
+            }
+        }
+
+        // Balance spike: anyone with > $50,000 in wallet (highly suspicious for sitting cash)
+        for (const u of users) {
+            if (u.balance > 50000 && !flags.find(f => f.userId === u.userId)) {
+                flags.push({
+                    userId: u.userId,
+                    type: 'balance_spike',
+                    label: 'Balance Spike',
+                    detail: `$${u.balance.toLocaleString()} sitting in wallet`,
+                    severity: 'medium',
+                    balance: u.balance,
+                    bank: u.bank
+                });
+            }
+        }
+
+        res.json(flags);
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// API: BANS
+app.get('/api/bans', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        const config = await Config.findOne({ guildId });
+        res.json(config?.bannedUsers || []);
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/bans/add', requireAuth, async (req, res) => {
+    const { userId, reason } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    try {
+        const guildId = req.session.guild.id;
+        await Config.findOneAndUpdate(
+            { guildId },
+            { $addToSet: { bannedUsers: { userId, reason: reason || 'No reason given', bannedAt: new Date() } } },
+            { upsert: true, new: true }
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/bans/remove', requireAuth, async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    try {
+        const guildId = req.session.guild.id;
+        await Config.findOneAndUpdate(
+            { guildId },
+            { $pull: { bannedUsers: { userId } } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// API: MODULES
+app.get('/api/modules', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        const config = await Config.findOne({ guildId });
+        const defaults = {
+            work: true, rob: true, coinflip: true, dice: true, slots: true,
+            duel: true, stocks: true, slave: true, givemoney: true,
+            deposit: true, withdraw: true, leaderboard: true
+        };
+        res.json({ ...defaults, ...(config?.modules || {}) });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/modules', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        await Config.findOneAndUpdate(
+            { guildId },
+            { modules: req.body },
+            { upsert: true, new: true }
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ACTION: WIPE ALL SLAVE DEBT
+app.post('/api/action/wipe-slave-debt', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.session.guild.id;
+        await Slave.updateMany({ guildId }, { $set: { debt: 0, ownerId: null } });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
+});
+
+// ACTION: REMOVE STOCK FROM PLAYER
+app.post('/api/action/remove-stock', requireAuth, async (req, res) => {
+    const { userId, ticker } = req.body;
+    if (!userId || !ticker) return res.status(400).json({ error: 'Missing fields' });
+    try {
+        const guildId = req.session.guild.id;
+        const portfolio = await Portfolio.findOne({ userId, guildId });
+        if (!portfolio) return res.status(404).json({ success: false, error: 'Portfolio not found' });
+        portfolio.holdings = portfolio.holdings.filter(h => h.ticker !== ticker.toUpperCase());
+        await portfolio.save();
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
 
 const PORT = process.env.PORT || 3000;
