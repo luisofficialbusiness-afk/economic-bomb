@@ -391,6 +391,19 @@ input::placeholder { color: var(--muted); }
           <tbody id="anticheatBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
+
+      <!-- Remove stock inline panel -->
+      <div id="removeStockPanel" style="display:none;margin-top:1rem">
+        <div class="action-card">
+          <h3>🗑️ Remove Stock from Flagged Player</h3>
+          <p>Enter the ticker to remove all shares from <strong id="removeStockTarget"></strong>.</p>
+          <div class="input-row">
+            <input type="text" id="acRemoveTicker" placeholder="Ticker (e.g. TGLC)" style="text-transform:uppercase"/>
+          </div>
+          <button class="btn btn-danger" onclick="confirmRemoveStock()">Remove Stock</button>
+          <button class="btn btn-outline" style="margin-left:0.5rem" onclick="closeRemoveStockPanel()">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="sec-bans">
@@ -878,9 +891,10 @@ async function loadAnticheat() {
         <td style="font-size:0.82rem;color:var(--muted)">${f.detail}</td>
         <td class="mono">$${Number(f.balance).toLocaleString()}</td>
         <td class="mono">$${Number(f.bank).toLocaleString()}</td>
-        <td>
-          <button class="btn btn-danger btn-sm" onclick="quickResetBalance('${f.userId}')">Reset</button>
-          <button class="btn btn-outline btn-sm" style="margin-left:0.4rem" onclick="quickBan('${f.userId}')">Ban</button>
+        <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-danger btn-sm" onclick="quickResetBalance('${f.userId}')">💀 Reset to $0</button>
+          <button class="btn btn-outline btn-sm" onclick="openRemoveStockPanel('${f.userId}')">🗑️ Remove Stock</button>
+          <button class="btn btn-outline btn-sm" onclick="quickBan('${f.userId}')">🔨 Ban</button>
         </td>
       </tr>
     `).join('') : '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--green)">✓ No flags detected</td></tr>';
@@ -888,16 +902,38 @@ async function loadAnticheat() {
 }
 
 async function quickResetBalance(userId) {
-  const res = await fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) });
-  const d = await res.json();
-  d.success ? toast('✅ Balance reset to $0') : toast('❌ ' + d.error, 'error');
+  // Wipe both wallet and bank
+  const [r1, r2] = await Promise.all([
+    fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) }),
+    fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) })
+  ]);
+  const d1 = await r1.json();
+  d1.success ? toast('✅ Wallet and bank reset to $0') : toast('❌ ' + d1.error, 'error');
   loadAnticheat();
 }
 
-async function quickBan(userId) {
-  const res = await fetch('/api/bans/add', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, reason: 'Flagged by anti-cheat' }) });
+let removeStockUserId = null;
+
+function openRemoveStockPanel(userId) {
+  removeStockUserId = userId;
+  document.getElementById('removeStockTarget').textContent = userId;
+  document.getElementById('acRemoveTicker').value = '';
+  document.getElementById('removeStockPanel').style.display = 'block';
+  document.getElementById('removeStockPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeRemoveStockPanel() {
+  removeStockUserId = null;
+  document.getElementById('removeStockPanel').style.display = 'none';
+}
+
+async function confirmRemoveStock() {
+  const ticker = document.getElementById('acRemoveTicker').value.trim().toUpperCase();
+  if (!ticker || !removeStockUserId) return toast('Enter a ticker', 'error');
+  const res = await fetch('/api/action/remove-stock', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId: removeStockUserId, ticker }) });
   const d = await res.json();
-  d.success ? toast('✅ User banned') : toast('❌ Failed', 'error');
+  if (d.success) { toast(`✅ Removed ${ticker} from ${removeStockUserId}`); closeRemoveStockPanel(); loadAnticheat(); }
+  else toast('❌ ' + d.error, 'error');
 }
 
 async function loadBans() {
