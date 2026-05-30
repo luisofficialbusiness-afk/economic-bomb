@@ -137,6 +137,10 @@ app.get('/auth/logout', (req, res) => {
     res.redirect('/');
 });
 
+app.get('/select-server', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'select-server.html'));
+});
+
 app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });

@@ -201,8 +201,8 @@ input::placeholder { color: var(--muted); }
 .loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
 
 /* CHART BAR */
-.mini-bar { display: flex; align-items: flex-end; gap: 2px; height: 32px; }
-.bar-seg { background: var(--border); border-radius: 2px; flex: 1; transition: background 0.15s; }
+.mini-bar { display: flex; align-items: flex-end; gap: 2px; height: 24px; overflow: hidden; }
+.bar-seg { background: var(--border); border-radius: 2px; flex: 1; min-height: 3px; max-height: 24px; transition: background 0.15s; }
 .bar-seg.up { background: rgba(34,197,94,0.4); }
 .bar-seg.dn { background: rgba(239,68,68,0.4); }
 
@@ -517,6 +517,12 @@ async function loadMe() {
     document.getElementById('currentServerName').textContent = data.guild?.name || 'Unknown';
     document.getElementById('userName').textContent = data.user?.username || '';
     document.getElementById('userAvatar').src = data.user?.avatar || '';
+    const iconEl = document.getElementById('currentServerIcon');
+    if (data.guild?.icon) {
+      iconEl.innerHTML = `<img src="${data.guild.icon}" style="width:20px;height:20px;border-radius:4px;object-fit:cover"/>`;
+    } else {
+      iconEl.textContent = (data.guild?.name || '?').charAt(0);
+    }
     loadServers();
   } catch(e) {}
 }
@@ -629,7 +635,10 @@ async function loadStocks() {
       const arrow = change >= 0 ? '▲' : '▼';
       const bars = hist.slice(-8).map((p,i,arr) => {
         const c = i > 0 ? (p >= arr[i-1] ? 'up' : 'dn') : '';
-        return `<div class="bar-seg ${c}" style="height:${Math.max(20,Math.min(100,(p/s.price)*32))+'px'}"></div>`;
+        const min = Math.min(...arr); const max = Math.max(...arr);
+        const range = max - min || 1;
+        const h = Math.max(3, Math.round(((p - min) / range) * 20) + 4);
+        return `<div class="bar-seg ${c}" style="height:${h}px"></div>`;
       }).join('');
       const holderCount = s.holderCount || 0;
       return `
