@@ -688,6 +688,7 @@ async function loadHealth() {
 
 async function loadLeaderboard() {
   try {
+    const res = await fetch('/api/leaderboard');
     const data = await res.json();
     document.getElementById('lbCount').textContent = data.length + ' players';
     const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
