@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.12);
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+a { text-decoration: none; color: inherit; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo img { height: 26px; width: 26px; object-fit: contain; border-radius: 5px; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.page { flex: 1; max-width: 740px; margin: 0 auto; padding: 7rem 2rem 5rem; width: 100%; }
+
+.page-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 100px; padding: 0.25rem 0.85rem; margin-bottom: 1.5rem; font-family: 'DM Mono', monospace; }
+
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+.page-meta { font-size: 0.82rem; color: var(--muted); margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+
+.doc-section { margin-bottom: 2.5rem; }
+h2 { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.75rem; color: var(--text); display: flex; align-items: center; gap: 0.6rem; }
+h2::before { content: ''; display: inline-block; width: 3px; height: 1em; background: var(--accent); border-radius: 2px; }
+p { font-size: 0.88rem; color: var(--muted); line-height: 1.8; margin-bottom: 0.75rem; }
+ul { list-style: none; padding: 0; margin-bottom: 0.75rem; }
+ul li { font-size: 0.88rem; color: var(--muted); line-height: 1.8; padding-left: 1.2rem; position: relative; }
+ul li::before { content: '·'; position: absolute; left: 0; color: var(--subtle); font-size: 1.2rem; line-height: 1.5; }
+
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
+footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.82rem; color: var(--muted); }
+.footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.footer-logo img { height: 22px; width: 22px; object-fit: contain; border-radius: 4px; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" alt="Economic Bomb"/>
+    Economic<span class="logo-dot"> Bomb</span>
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Commands</a>
+    <a href="https://discord.gg/BBSNXVrHyX" class="nav-link">Support</a>
+    <a href="https://discord.gg/BBSNXVrHyX" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Legal</div>
+  <h1>Privacy Policy</h1>
+  <div class="page-meta">Last updated: May 30, 2026 &nbsp;·&nbsp; Economic Bomb</div>
+
+  <div class="callout">
+    Economic Bomb is a Discord economy bot. This policy explains what data we collect, how we use it, and your rights regarding that data.
+  </div>
+
+  <div class="doc-section">
+    <h2>What We Collect</h2>
+    <p>Economic Bomb collects and stores the following data to operate the bot's economy system:</p>
+    <ul>
+      <li>Your Discord user ID</li>
+      <li>The Discord server (guild) ID where you use the bot</li>
+      <li>Economy data: wallet balance, bank balance, stock portfolio holdings</li>
+      <li>Slave system data: ownership status, debt amounts, and earnings history</li>
+      <li>Command usage timestamps (for cooldown enforcement)</li>
+    </ul>
+    <p>We do not collect your email address, real name, password, or any personal information beyond what Discord provides through its public API.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>How We Use Your Data</h2>
+    <p>All collected data is used solely to operate the bot's features:</p>
+    <ul>
+      <li>Storing and retrieving your in-game economy balances</li>
+      <li>Tracking cooldowns to prevent command abuse</li>
+      <li>Enforcing server-specific economy settings configured by server admins</li>
+      <li>Displaying leaderboards and statistics within your server</li>
+    </ul>
+    <p>We do not sell, share, or use your data for advertising or any purpose outside of operating the bot.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Dashboard & OAuth2</h2>
+    <p>If you use the Economic Bomb dashboard, we request access to the following Discord OAuth2 scopes:</p>
+    <ul>
+      <li><strong style="color:var(--text)">identify</strong> — to verify your Discord identity and display your username</li>
+      <li><strong style="color:var(--text)">guilds</strong> — to determine which servers you manage that the bot is in</li>
+    </ul>
+    <p>We do not store your OAuth2 access token beyond your active session. Session data is cleared when you log out or after 24 hours of inactivity.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Data Storage</h2>
+    <p>Your data is stored in a MongoDB database. We take reasonable precautions to protect stored data, but cannot guarantee absolute security. Economy data is stored only as long as you or your server continues to use the bot.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Data Deletion</h2>
+    <p>You can request deletion of your data at any time by contacting us in our support server. Server admins can also reset all economy data for their server using the <code style="font-family:'DM Mono',monospace;color:var(--accent)">?oresetleaderboard</code> command.</p>
+    <p>When the bot is removed from a server, data associated with that server is not automatically deleted — contact us if you'd like it removed.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Third Parties</h2>
+    <p>Economic Bomb uses the following third-party services:</p>
+    <ul>
+      <li><strong style="color:var(--text)">Discord</strong> — the platform the bot operates on. Subject to Discord's own privacy policy.</li>
+      <li><strong style="color:var(--text)">MongoDB</strong> — for data storage.</li>
+    </ul>
+    <p>We do not integrate with any advertising networks or analytics services.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Children's Privacy</h2>
+    <p>Economic Bomb follows Discord's Terms of Service, which require users to be at least 13 years old. We do not knowingly collect data from users under 13.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Changes to This Policy</h2>
+    <p>We may update this policy from time to time. Continued use of the bot after changes are posted constitutes acceptance of the updated policy. Significant changes will be announced in our support server.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Contact</h2>
+    <p>If you have any questions about this privacy policy or want to request data deletion, please reach out through our <a href="https://discord.gg/BBSNXVrHyX" style="color:var(--accent)">support server</a>.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">
+    <img src="economicbomb.webp" alt=""/>
+    Economic<span> Bomb</span>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+  </div>
+  <span>© 2026 Economic Bomb</span>
+</footer>
+
+</body>
+</html>
