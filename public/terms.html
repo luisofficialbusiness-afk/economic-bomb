@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms of Service — Economic Bomb</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+a { text-decoration: none; color: inherit; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo img { height: 26px; width: 26px; object-fit: contain; border-radius: 5px; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.page { flex: 1; max-width: 740px; margin: 0 auto; padding: 7rem 2rem 5rem; width: 100%; }
+.page-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 100px; padding: 0.25rem 0.85rem; margin-bottom: 1.5rem; font-family: 'DM Mono', monospace; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+.page-meta { font-size: 0.82rem; color: var(--muted); margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.doc-section { margin-bottom: 2.5rem; }
+h2 { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.75rem; color: var(--text); display: flex; align-items: center; gap: 0.6rem; }
+h2::before { content: ''; display: inline-block; width: 3px; height: 1em; background: var(--accent); border-radius: 2px; }
+p { font-size: 0.88rem; color: var(--muted); line-height: 1.8; margin-bottom: 0.75rem; }
+ul { list-style: none; padding: 0; margin-bottom: 0.75rem; }
+ul li { font-size: 0.88rem; color: var(--muted); line-height: 1.8; padding-left: 1.2rem; position: relative; }
+ul li::before { content: '·'; position: absolute; left: 0; color: var(--subtle); font-size: 1.2rem; line-height: 1.5; }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+.callout.red { border-left-color: var(--red); }
+code { font-family: 'DM Mono', monospace; color: var(--accent); background: var(--accent-dim); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
+
+footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.82rem; color: var(--muted); }
+.footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.footer-logo img { height: 22px; width: 22px; object-fit: contain; border-radius: 4px; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" alt="Economic Bomb"/>
+    Economic<span class="logo-dot"> Bomb</span>
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Commands</a>
+    <a href="login.html" class="nav-link">Dashboard</a>
+    <a href="privacy-policy.html" class="nav-link">Privacy</a>
+    <a href="https://discord.gg/BBSNXVrHyX" class="nav-link">Support</a>
+    <a href="https://discord.gg/BBSNXVrHyX" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Legal</div>
+  <h1>Terms of Service</h1>
+  <div class="page-meta">Last updated: May 30, 2026 &nbsp;·&nbsp; Economic Bomb</div>
+
+  <div class="callout">
+    By using Economic Bomb (the bot or the dashboard), you agree to these Terms of Service. If you do not agree, do not use Economic Bomb.
+  </div>
+
+  <div class="doc-section">
+    <h2>1. Eligibility</h2>
+    <p>You must be at least 13 years old to use Economic Bomb, in accordance with Discord's Terms of Service. By using the bot, you confirm that you meet this requirement. Users in jurisdictions where a higher minimum age applies must meet that requirement.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. Discord's Terms Apply</h2>
+    <p>Economic Bomb operates on Discord. By using our bot, you also agree to be bound by <a href="https://discord.com/terms" style="color:var(--accent)">Discord's Terms of Service</a> and <a href="https://discord.com/guidelines" style="color:var(--accent)">Community Guidelines</a>. Any violation of Discord's rules may also result in removal from Economic Bomb.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. Acceptable Use</h2>
+    <p>You agree not to use Economic Bomb to:</p>
+    <ul>
+      <li>Exploit bugs, glitches, or unintended mechanics to gain unfair advantages</li>
+      <li>Attempt to manipulate, reverse engineer, or disrupt the bot or its economy systems</li>
+      <li>Use automation, scripts, or bots to interact with Economic Bomb commands</li>
+      <li>Harass, threaten, or harm other users through the bot's features</li>
+      <li>Circumvent bans, cooldowns, or restrictions imposed by server admins or us</li>
+      <li>Use the bot for any unlawful purpose</li>
+    </ul>
+    <p>We reserve the right to ban users who violate these rules from all Economic Bomb services.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. Virtual Economy</h2>
+    <p>All balances, stocks, and items within Economic Bomb are virtual and have no real-world monetary value. We do not offer, sell, or exchange virtual economy items for real currency. Virtual economy data may be reset at any time, including during seasonal resets, server wipes, or at our discretion.</p>
+    <div class="callout red">
+      Virtual currency in Economic Bomb has no real monetary value and cannot be exchanged for real money, goods, or services under any circumstances.
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. Server Admin Responsibilities</h2>
+    <p>If you add Economic Bomb to a Discord server you manage, you take on responsibility for:</p>
+    <ul>
+      <li>Ensuring the bot is used appropriately within your server</li>
+      <li>Configuring the bot's settings (allowed channels, modules, bans) appropriately for your community</li>
+      <li>Informing your server members about the bot and these terms</li>
+      <li>Any consequences arising from misuse of admin-only commands (such as economy resets)</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Dashboard Access</h2>
+    <p>The Economic Bomb dashboard is available to Discord users with Administrator permission in servers that have the bot. Access is granted via Discord OAuth2. We reserve the right to revoke dashboard access at any time for any reason, including abuse or violation of these terms.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. Service Availability</h2>
+    <p>We do not guarantee uninterrupted access to Economic Bomb. The bot may be offline for maintenance, updates, or due to circumstances outside our control. We are not liable for any loss of virtual economy data resulting from downtime or technical issues.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. Data & Privacy</h2>
+    <p>Your use of Economic Bomb is also governed by our <a href="privacy-policy.html" style="color:var(--accent)">Privacy Policy</a>, which describes how we collect and use your data. By using the bot, you consent to those practices.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. Termination</h2>
+    <p>We may suspend or permanently ban any user or server from Economic Bomb at our discretion, with or without notice, if we determine they have violated these terms or are causing harm to the service or its users. Banned users forfeit any virtual economy data.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>10. Changes to These Terms</h2>
+    <p>We may update these Terms of Service at any time. Continued use of Economic Bomb after changes are posted constitutes acceptance of the updated terms. We will announce significant changes in our support server.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>11. Disclaimer of Warranties</h2>
+    <p>Economic Bomb is provided "as is" without warranties of any kind. We make no guarantees about the reliability, accuracy, or availability of the service. Use it at your own risk.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>12. Contact</h2>
+    <p>If you have questions about these terms or want to report a violation, please reach out through our <a href="https://discord.gg/BBSNXVrHyX" style="color:var(--accent)">support server</a>.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">
+    <img src="economicbomb.webp" alt=""/>
+    Economic<span> Bomb</span>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy-policy.html">Privacy</a>
+  </div>
+  <span>© 2026 Economic Bomb</span>
+</footer>
+
+</body>
+</html>
