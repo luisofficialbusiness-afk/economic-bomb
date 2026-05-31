@@ -320,8 +320,8 @@ input::placeholder { color: var(--muted); }
           <span id="slaveCount"></span>
         </div>
         <table>
-          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt Remaining</th><th>Total Earned</th><th>Progress</th></tr></thead>
-          <tbody id="slaveBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt Remaining</th><th>Total Earned</th><th>Progress</th><th>Action</th></tr></thead>
+          <tbody id="slaveBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -484,6 +484,12 @@ input::placeholder { color: var(--muted); }
             <input type="text" id="removeStockTicker" placeholder="Ticker (e.g. TGLC)"/>
           </div>
           <button class="btn btn-danger" onclick="removeStock()">Remove Stock</button>
+        </div>
+
+        <div class="action-card">
+          <h3>Seed Stock Market</h3>
+          <p>Re-initialize the stock market with all 15 companies at their default prices. Use this if stocks are missing or broken.</p>
+          <button class="btn btn-fill" onclick="seedMarket()">Seed Market</button>
         </div>
 
         <div class="action-card">
@@ -733,9 +739,10 @@ async function loadSlaves() {
               <span style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap">${pct}%</span>
             </div>
           </td>
+          <td><button class="btn btn-outline btn-sm" onclick="releaseSlave('${s.userId}')">Release</button></td>
         </tr>
       `;
-    }).join('') || '<tr><td colspan="5" class="loading">No active slaves</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="loading">No active slaves</td></tr>';
   } catch(e) {}
 }
 
@@ -969,6 +976,20 @@ async function saveModules() {
     document.getElementById('modulesSaved').style.display = 'inline';
     toast('✅ Modules saved!');
   } catch(e) { toast('❌ Failed to save', 'error'); }
+}
+
+async function releaseSlave(userId) {
+  if (!confirm(`Release slave ${userId}? Their debt will be cleared and they will be freed.`)) return;
+  const res = await fetch('/api/action/release-slave', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId }) });
+  const d = await res.json();
+  d.success ? (toast('✅ Slave released!'), loadSlaves()) : toast('❌ ' + d.error, 'error');
+}
+
+async function seedMarket() {
+  if (!confirm('Re-seed the stock market? This will reset all stock prices to defaults.')) return;
+  const res = await fetch('/api/action/seed-market', { method: 'POST' });
+  const d = await res.json();
+  d.success ? (toast('✅ Market seeded with 15 stocks!'), loadStocks()) : toast('❌ ' + d.error, 'error');
 }
 
 async function wipeSlaveDebt() {

@@ -228,7 +228,6 @@ app.get('/api/slaves', requireAuth, async (req, res) => {
 
 app.get('/api/stocks', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
         const stocks = await Stock.find({ guildId });
         const portfolios = await Portfolio.find({});
         const holderCounts = {};
@@ -353,7 +352,6 @@ app.post('/api/action/set-stock', requireAuth, async (req, res) => {
     const { ticker, price } = req.body;
     if (!ticker || price === undefined) return res.status(400).json({ error: 'Missing fields' });
     try {
-        const guildId = req.session.guild.id;
         const stock = await Stock.findOne({ guildId, ticker: ticker.toUpperCase() });
         if (!stock) return res.json({ success: false, error: 'Stock not found' });
         stock.price = parseFloat(price);
@@ -514,6 +512,56 @@ app.post('/api/modules', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
+// ACTION: RELEASE SINGLE SLAVE
+app.post('/api/action/release-slave', requireAuth, async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    try {
+        const guildId = req.session.guild.id;
+        await Slave.findOneAndUpdate(
+            { userId, guildId },
+            { $set: { ownerId: null, debt: 0 } }
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Failed' });
+    }
+});
+
+// ACTION: SEED MARKET
+app.post('/api/action/seed-market', requireAuth, async (req, res) => {
+    const COMPANIES = [
+        { ticker: 'VLR',  name: 'Velera Inc',           price: 142.50 },
+        { ticker: 'FRGS', name: "Frogiee's Arcade",      price: 34.20  },
+        { ticker: 'DOGE', name: 'Doge UB',               price: 0.85   },
+        { ticker: 'CHRI', name: 'Cherri Inc',             price: 58.00  },
+        { ticker: 'TGLC', name: 'TGLSC Corp',             price: 210.00 },
+        { ticker: 'GNMT', name: 'Gn Math',               price: 76.40  },
+        { ticker: 'CNOS', name: 'Cine OS',               price: 99.99  },
+        { ticker: 'OVCL', name: 'Overcloaked Corp',       price: 185.30 },
+        { ticker: 'TRFL', name: 'Truffled Inc',           price: 47.60  },
+        { ticker: 'LNR',  name: 'LUNAR Research Inc',     price: 320.00 },
+        { ticker: 'VOID', name: 'Void Network Corp',      price: 5.55   },
+        { ticker: 'HDR',  name: 'Hydra Network Corp',     price: 88.88  },
+        { ticker: 'NRGX', name: 'NRG Exchange',           price: 500.00 },
+        { ticker: 'PLSM', name: 'Plasma Dynamics Inc',    price: 63.75  },
+        { ticker: 'ZRTH', name: 'Zeroth Systems',         price: 112.00 },
+    ];
+    try {
+        const guildId = req.session.guild.id;
+        for (const c of COMPANIES) {
+            await Stock.findOneAndUpdate(
+                { guildId, ticker: c.ticker },
+                { guildId, ...c, history: [c.price], totalShares: 0 },
+                { upsert: true, new: true }
+            );
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Failed to seed market' });
+    }
+});
+
 app.post('/api/action/wipe-slave-debt', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
