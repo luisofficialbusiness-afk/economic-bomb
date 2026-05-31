@@ -148,22 +148,9 @@ app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-app.post('/api/switch-guild', requireAuth, (req, res) => {
-    const { guildId } = req.body;
-    // Search both bot-present guilds and all admin guilds
-    const guild = req.session.guilds?.find(g => g.id === guildId)
-        || req.session.allAdminGuilds?.find(g => g.id === guildId);
-    if (!guild) return res.status(403).json({ error: 'Not authorized for that server' });
-    req.session.guild = { ...guild, isAdmin: true };
-    res.json({ success: true, guild: req.session.guild });
-});
 
 app.get('/api/me', requireAuth, (req, res) => {
     res.json({ user: req.session.user, guild: req.session.guild });
-});
-
-app.get('/api/guilds', requireAuth, (req, res) => {
-    res.json(req.session.guilds || []);
 });
 
 // All guilds user is admin in (bot present or not)
@@ -633,4 +620,161 @@ app.post('/api/action/remove-stock', requireAuth, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// ─── DEVELOPER PANEL ────────────────────────────────────────────────────────
+const DEVELOPER_ID = '1453078748080504996';
+const DEV_GUILD = { id: 'developer', name: 'Developer', icon: null, isAdmin: true, isDev: true };
+const errorLogs = [];
+const MAX_LOGS = 200;
+
+// Intercept console.error to capture error logs
+const _origError = console.error.bind(console);
+console.error = (...args) => {
+    errorLogs.unshift({ ts: new Date().toISOString(), msg: args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ') });
+    if (errorLogs.length > MAX_LOGS) errorLogs.pop();
+    _origError(...args);
+};
+
+function requireDev(req, res, next) {
+    if (!req.session.user || req.session.user.id !== DEVELOPER_ID) {
+        return res.status(403).json({ error: 'Developer access only' });
+    }
+    next();
+}
+
+// Inject Developer guild into /api/guilds for the owner
+app.get('/api/guilds', requireAuth, (req, res) => {
+    const guilds = req.session.guilds || [];
+    if (req.session.user?.id === DEVELOPER_ID) {
+        return res.json([...guilds, DEV_GUILD]);
+    }
+    res.json(guilds);
+});
+
+// Handle switching to developer guild
+app.post('/api/switch-guild', requireAuth, (req, res) => {
+    const { guildId } = req.body;
+    if (guildId === 'developer' && req.session.user?.id === DEVELOPER_ID) {
+        req.session.guild = DEV_GUILD;
+        return res.json({ success: true, guild: DEV_GUILD });
+    }
+    const guild = req.session.guilds?.find(g => g.id === guildId)
+        || req.session.allAdminGuilds?.find(g => g.id === guildId);
+    if (!guild) return res.status(403).json({ error: 'Not authorized for that server' });
+    req.session.guild = { ...guild, isAdmin: true };
+    res.json({ success: true, guild: req.session.guild });
+});
+
+// Dev: all guilds bot is in
+app.get('/api/dev/guilds', requireDev, async (req, res) => {
+    try {
+        const botGuildRes = await fetch('https://discord.com/api/users/@me/guilds', {
+            headers: { Authorization: `Bot ${process.env.TOKEN}` }
+        });
+        const botGuilds = await botGuildRes.json();
+        if (!Array.isArray(botGuilds)) return res.json([]);
+        // Attach player/slave counts
+        const results = await Promise.all(botGuilds.map(async g => {
+            const playerCount = await User.countDocuments({ guildId: g.id });
+            const slaveCount = await Slave.countDocuments({ guildId: g.id, ownerId: { $ne: null } });
+            return {
+                id: g.id, name: g.name,
+                icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
+                playerCount, slaveCount
+            };
+        }));
+        res.json(results);
+    } catch(err) {
+        console.error('dev/guilds error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Dev: economy stats for any guild by ID
+app.get('/api/dev/guild/:guildId/stats', requireDev, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const users = await User.find({ guildId });
+        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
+        const stocks = await Stock.find({ guildId });
+        const totalWallet = users.reduce((a, u) => a + (u.balance || 0), 0);
+        const totalBank = users.reduce((a, u) => a + (u.bank || 0), 0);
+        const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
+        const config = await Config.findOne({ guildId });
+        res.json({
+            guildId,
+            playerCount: users.length,
+            totalWallet: totalWallet.toFixed(2),
+            totalBank: totalBank.toFixed(2),
+            totalCirculation: (totalWallet + totalBank).toFixed(2),
+            slaveCount: slaves.length,
+            stockCount: stocks.length,
+            richest: sorted[0] ? { userId: sorted[0].userId, total: (sorted[0].balance + sorted[0].bank).toFixed(2) } : null,
+            modules: config?.modules || {},
+            allowedChannels: config?.allowedChannels || [],
+            bannedUsers: config?.bannedUsers || []
+        });
+    } catch(err) {
+        console.error('dev/guild/stats error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Dev: get any user's balance across any guild
+app.get('/api/dev/user/:userId', requireDev, async (req, res) => {
+    try {
+        const users = await User.find({ userId: req.params.userId });
+        res.json(users.map(u => ({ guildId: u.guildId, balance: u.balance, bank: u.bank, lastWork: u.lastWork, dailyStreak: u.dailyStreak || 0 })));
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Dev: edit any user's balance in any guild
+app.post('/api/dev/user/:userId/edit', requireDev, async (req, res) => {
+    try {
+        const { guildId, balance, bank } = req.body;
+        const user = await User.findOne({ userId: req.params.userId, guildId });
+        if (!user) return res.json({ success: false, error: 'User not found' });
+        if (balance !== undefined) user.balance = parseFloat(balance);
+        if (bank !== undefined) user.bank = parseFloat(bank);
+        await user.save();
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Dev: get server config for any guild
+app.get('/api/dev/guild/:guildId/config', requireDev, async (req, res) => {
+    try {
+        const config = await Config.findOne({ guildId: req.params.guildId });
+        res.json(config || { guildId: req.params.guildId, modules: {}, bannedUsers: [], allowedChannels: [] });
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Dev: force stock tick on any guild
+app.post('/api/dev/guild/:guildId/tick', requireDev, async (req, res) => {
+    try {
+        const stocks = await Stock.find({ guildId: req.params.guildId });
+        if (!stocks.length) return res.json({ success: false, error: 'No stocks found for this guild' });
+        for (const stock of stocks) {
+            const change = 1 + (Math.random() * 0.06 - 0.03);
+            stock.price = Math.max(0.01, parseFloat((stock.price * change).toFixed(2)));
+            stock.history.push(stock.price);
+            if (stock.history.length > 30) stock.history.shift();
+            await stock.save();
+        }
+        res.json({ success: true, tickedCount: stocks.length });
+    } catch(err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Dev: error logs
+app.get('/api/dev/logs', requireDev, (req, res) => {
+    res.json(errorLogs);
+});
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));

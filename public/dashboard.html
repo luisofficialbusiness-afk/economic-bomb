@@ -262,6 +262,8 @@ input::placeholder { color: var(--muted); }
     <a class="sb-link" data-section="modules">Modules</a>
     <a class="sb-link" data-section="channels"> Channels</a>
     <a class="sb-link" data-section="actions"> Actions</a>
+    <div class="sb-label" id="devSidebarLabel" style="display:none">Developer</div>
+    <a class="sb-link" id="devSidebarLink" data-section="devpanel" style="display:none">Debug Panel</a>
   </aside>
 
   <main class="content">
@@ -507,6 +509,87 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
+    <!-- DEVELOPER DEBUG PANEL -->
+    <div class="section" id="sec-devpanel">
+      <div class="sec-label">Developer</div>
+      <div class="sec-title">Debug Panel</div>
+
+      <div class="stat-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card" style="cursor:pointer" onclick="loadDevGuilds()">
+          <span class="stat-n blue" id="devGuildCount">—</span>
+          <div class="stat-l">Bot Servers</div>
+          <div class="stat-sub">click to refresh</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-n red" id="devLogCount">0</span>
+          <div class="stat-l">Error Logs</div>
+        </div>
+      </div>
+
+      <!-- GUILD SEARCH -->
+      <div class="table-wrap" style="margin-bottom:1.5rem">
+        <div class="table-head">
+          <h3>All Bot Servers</h3>
+          <div class="table-search">
+            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+            <input type="text" placeholder="Search servers..." oninput="filterTable('devGuildBody', this.value)"/>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Server Name</th><th>Guild ID</th><th>Players</th><th>Slaves</th><th>Actions</th></tr></thead>
+          <tbody id="devGuildBody"><tr><td colspan="5" class="loading">Click "Bot Servers" to load</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- GUILD INSPECTOR -->
+      <div class="table-wrap" style="margin-bottom:1.5rem" id="devGuildInspector" style="display:none">
+        <div class="table-head">
+          <h3>Guild Inspector</h3>
+          <div class="table-search">
+            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+            <input type="text" id="devGuildIdInput" placeholder="Guild ID..."/>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadDevGuildStats()">Inspect</button>
+        </div>
+        <div id="devGuildStatsBody" style="padding:1.25rem 1.5rem;font-size:0.85rem;color:var(--muted)">Enter a guild ID above and click Inspect.</div>
+      </div>
+
+      <!-- USER EDITOR -->
+      <div class="action-grid" style="margin-bottom:1.5rem">
+        <div class="action-card">
+          <h3>User Balance Editor</h3>
+          <p>Look up and edit any user's balance across any guild.</p>
+          <div class="input-row">
+            <input type="text" id="devUserId" placeholder="User ID"/>
+            <button class="btn btn-outline btn-sm" onclick="loadDevUser()">Lookup</button>
+          </div>
+          <div id="devUserResults" style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted)"></div>
+        </div>
+
+        <div class="action-card">
+          <h3>Force Stock Tick</h3>
+          <p>Force a stock market fluctuation on any guild by ID.</p>
+          <div class="input-row">
+            <input type="text" id="devTickGuildId" placeholder="Guild ID"/>
+          </div>
+          <button class="btn btn-outline" onclick="devTickStocks()">Force Tick</button>
+        </div>
+      </div>
+
+      <!-- ERROR LOGS -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Error Logs</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadDevLogs()">Refresh</button>
+          <span id="devLogsTs" style="font-size:0.72rem;color:var(--muted)"></span>
+        </div>
+        <table>
+          <thead><tr><th>Time</th><th>Message</th></tr></thead>
+          <tbody id="devLogsBody"><tr><td colspan="2" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -626,6 +709,23 @@ async function loadMe() {
     } else {
       iconEl.textContent = (data.guild?.name || '?').charAt(0);
     }
+
+    // Show dev panel if on developer guild
+    if (data.guild?.id === 'developer') {
+      document.getElementById('devSidebarLabel').style.display = '';
+      document.getElementById('devSidebarLink').style.display = '';
+      // Auto-navigate to dev panel
+      document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('devSidebarLink').classList.add('active');
+      document.getElementById('sec-devpanel').classList.add('active');
+      loadDevGuilds();
+      loadDevLogs();
+    } else {
+      document.getElementById('devSidebarLabel').style.display = 'none';
+      document.getElementById('devSidebarLink').style.display = 'none';
+    }
+
     loadServers();
   } catch(e) {}
 }
@@ -639,6 +739,7 @@ function loadSection(sec) {
   if (sec === 'anticheat') loadAnticheat();
   if (sec === 'bans') loadBans();
   if (sec === 'modules') loadModules();
+  if (sec === 'devpanel') { loadDevGuilds(); loadDevLogs(); }
 }
 
 // Auto-refresh every 60s
@@ -1069,6 +1170,136 @@ async function resetCooldowns() {
 loadMe();
 loadStats();
 loadHealth();
+
+// ── DEVELOPER PANEL FUNCTIONS ─────────────────────────────────────────────
+
+async function loadDevGuilds() {
+  document.getElementById('devGuildBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+  try {
+    const res = await fetch('/api/dev/guilds');
+    const guilds = await res.json();
+    document.getElementById('devGuildCount').textContent = guilds.length;
+    document.getElementById('devGuildBody').innerHTML = guilds.map(g => `
+      <tr>
+        <td style="display:flex;align-items:center;gap:0.6rem">
+          ${g.icon ? `<img src="${g.icon}" style="width:22px;height:22px;border-radius:5px;object-fit:cover"/>` : `<div style="width:22px;height:22px;border-radius:5px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem">${g.name.charAt(0)}</div>`}
+          ${g.name}
+        </td>
+        <td class="mono" style="color:var(--muted)">${g.id}</td>
+        <td class="mono">${g.playerCount}</td>
+        <td class="mono" style="color:${g.slaveCount > 0 ? 'var(--red)' : 'var(--muted)'}">${g.slaveCount}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="inspectGuild('${g.id}')">Inspect</button>
+          <button class="btn btn-outline btn-sm" style="margin-left:0.3rem" onclick="devTickGuild('${g.id}')">Tick</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="5" class="loading">No guilds found</td></tr>';
+  } catch(e) {
+    document.getElementById('devGuildBody').innerHTML = '<tr><td colspan="5" class="loading">Failed to load</td></tr>';
+  }
+}
+
+async function inspectGuild(guildId) {
+  document.getElementById('devGuildIdInput').value = guildId;
+  await loadDevGuildStats();
+  document.getElementById('devGuildInspector').style.display = '';
+  document.getElementById('devGuildInspector').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function loadDevGuildStats() {
+  const guildId = document.getElementById('devGuildIdInput').value.trim();
+  if (!guildId) return;
+  document.getElementById('devGuildStatsBody').textContent = 'Loading...';
+  try {
+    const res = await fetch(`/api/dev/guild/${guildId}/stats`);
+    const d = await res.json();
+    if (d.error) { document.getElementById('devGuildStatsBody').textContent = 'Error: ' + d.error; return; }
+    document.getElementById('devGuildStatsBody').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem">
+        <div style="background:var(--bg);padding:1rem"><span style="font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--blue)">${d.playerCount}</span><div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem">Players</div></div>
+        <div style="background:var(--bg);padding:1rem"><span style="font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--accent)">$${Number(d.totalCirculation).toLocaleString()}</span><div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem">Circulation</div></div>
+        <div style="background:var(--bg);padding:1rem"><span style="font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--red)">${d.slaveCount}</span><div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem">Slaves</div></div>
+        <div style="background:var(--bg);padding:1rem"><span style="font-family:'DM Mono',monospace;font-size:1.1rem">${d.stockCount}</span><div style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem">Stocks</div></div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">Richest: <span style="color:var(--accent);font-family:'DM Mono',monospace">${d.richest ? d.richest.userId + ' ($' + Number(d.richest.total).toLocaleString() + ')' : 'None'}</span></div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">Modules: <span style="font-family:'DM Mono',monospace;color:var(--text)">${Object.keys(d.modules).length ? JSON.stringify(d.modules) : 'all default'}</span></div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">Banned users: <span style="color:var(--red);font-family:'DM Mono',monospace">${d.bannedUsers.length}</span></div>
+      <div style="font-size:0.8rem;color:var(--muted)">Allowed channels: <span style="font-family:'DM Mono',monospace">${d.allowedChannels.length ? d.allowedChannels.length + ' set' : 'all'}</span></div>
+    `;
+    document.getElementById('devGuildInspector').style.display = '';
+  } catch(e) {
+    document.getElementById('devGuildStatsBody').textContent = 'Failed: ' + e.message;
+  }
+}
+
+async function loadDevUser() {
+  const userId = document.getElementById('devUserId').value.trim();
+  if (!userId) return;
+  document.getElementById('devUserResults').textContent = 'Loading...';
+  try {
+    const res = await fetch(`/api/dev/user/${userId}`);
+    const accounts = await res.json();
+    if (!accounts.length) { document.getElementById('devUserResults').textContent = 'No accounts found for this user ID.'; return; }
+    document.getElementById('devUserResults').innerHTML = accounts.map(a => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.85rem;margin-bottom:0.5rem">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace">${a.guildId}</div>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+          <span style="font-size:0.8rem;color:var(--muted)">Wallet:</span>
+          <input type="number" value="${a.balance}" style="width:120px;font-family:'DM Mono',monospace" id="devBal_${a.guildId}"/>
+          <span style="font-size:0.8rem;color:var(--muted)">Bank:</span>
+          <input type="number" value="${a.bank}" style="width:120px;font-family:'DM Mono',monospace" id="devBank_${a.guildId}"/>
+          <button class="btn btn-fill btn-sm" onclick="saveDevUser('${userId}','${a.guildId}')">Save</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem">Streak: ${a.dailyStreak} days</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('devUserResults').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function saveDevUser(userId, guildId) {
+  const balance = document.getElementById(`devBal_${guildId}`)?.value;
+  const bank = document.getElementById(`devBank_${guildId}`)?.value;
+  try {
+    const res = await fetch(`/api/dev/user/${userId}/edit`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ guildId, balance, bank })
+    });
+    const d = await res.json();
+    d.success ? toast('Saved!') : toast('Error: ' + d.error, 'error');
+  } catch(e) { toast('Failed', 'error'); }
+}
+
+async function devTickStocks() {
+  const guildId = document.getElementById('devTickGuildId').value.trim();
+  if (!guildId) return toast('Enter a guild ID', 'error');
+  const res = await fetch(`/api/dev/guild/${guildId}/tick`, { method: 'POST' });
+  const d = await res.json();
+  d.success ? toast(`Ticked ${d.tickedCount} stocks!`) : toast('Error: ' + d.error, 'error');
+}
+
+async function devTickGuild(guildId) {
+  document.getElementById('devTickGuildId').value = guildId;
+  const res = await fetch(`/api/dev/guild/${guildId}/tick`, { method: 'POST' });
+  const d = await res.json();
+  d.success ? toast(`Ticked ${d.tickedCount} stocks for ${guildId}!`) : toast('Error: ' + d.error, 'error');
+}
+
+async function loadDevLogs() {
+  try {
+    const res = await fetch('/api/dev/logs');
+    const logs = await res.json();
+    document.getElementById('devLogCount').textContent = logs.length;
+    document.getElementById('devLogsTs').textContent = 'Last refreshed: ' + new Date().toLocaleTimeString();
+    document.getElementById('devLogsBody').innerHTML = logs.length ? logs.map(l => `
+      <tr>
+        <td class="mono" style="color:var(--muted);white-space:nowrap;font-size:0.72rem">${l.ts.replace('T',' ').substring(0,19)}</td>
+        <td style="font-size:0.78rem;color:var(--red);word-break:break-all">${l.msg}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="2" class="loading">No errors logged</td></tr>';
+  } catch(e) {}
+}
 </script>
 </body>
 </html>
