@@ -367,6 +367,7 @@ app.post('/api/action/set-stock', requireAuth, async (req, res) => {
 
 app.post('/api/action/tick-stocks', requireAuth, async (req, res) => {
     try {
+        const guildId = req.session.guild.id;
         const stocks = await Stock.find({ guildId });
         for (const stock of stocks) {
             const change = 1 + (Math.random() * 0.06 - 0.03);
