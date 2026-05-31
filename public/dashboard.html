@@ -320,8 +320,8 @@ input::placeholder { color: var(--muted); }
           <span id="slaveCount"></span>
         </div>
         <table>
-          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt Remaining</th><th>Total Earned</th><th>Progress</th><th>Action</th></tr></thead>
-          <tbody id="slaveBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+          <thead><tr><th>Slave ID</th><th>Owner ID</th><th>Debt Remaining</th><th>Total Earned</th><th>Progress</th></tr></thead>
+          <tbody id="slaveBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -487,12 +487,6 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>Seed Stock Market</h3>
-          <p>Re-initialize the stock market with all 15 companies at their default prices. Use this if stocks are missing or broken.</p>
-          <button class="btn btn-fill" onclick="seedMarket()">Seed Market</button>
-        </div>
-
-        <div class="action-card">
           <h3>Tick Stock Market</h3>
           <p>Manually trigger a stock market fluctuation — same ±3% logic as the 30-minute auto update.</p>
           <button class="btn btn-outline" onclick="tickStocks()">Run Market Tick</button>
@@ -518,12 +512,14 @@ input::placeholder { color: var(--muted); }
     </div>
     <div class="modal-body">
       <div class="modal-stats" id="modalStats"></div>
-      <div class="table-wrap" style="margin:0">
+      <div class="table-wrap" style="margin:0;overflow-x:auto">
         <div class="table-head"><h3>Shareholders</h3><span id="modalHoldersCount"></span></div>
-        <table>
+        <div style="overflow-x:auto">
+        <table style="min-width:500px">
           <thead><tr><th>#</th><th>User ID</th><th>Shares</th><th>Avg Buy</th><th>Value</th><th>P&L</th></tr></thead>
           <tbody id="modalHoldersBody"></tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -674,6 +670,36 @@ async function loadHealth() {
   try {
     const res = await fetch('/api/health');
     const d = await res.json();
+
+    const SUGGESTIONS = {
+      'Slave debt is over 50% of total circulation': [
+        { label: 'Wipe All Slave Debt', action: "wipeSlaveDebt()" },
+        { label: 'Give Money to All Players', action: "document.querySelector('[data-section=actions]').click()" }
+      ],
+      'Top player holds': [
+        { label: 'Reset Their Balance', action: "document.querySelector('[data-section=actions]').click()" },
+        { label: 'View Anti-Cheat', action: "document.querySelector('[data-section=anticheat]').click()" }
+      ],
+      'enslaved': [
+        { label: 'Wipe All Slave Debt', action: "wipeSlaveDebt()" }
+      ]
+    };
+
+    const suggestionCards = d.score < 65 && d.issues.length ? d.issues.map(issue => {
+      const match = Object.entries(SUGGESTIONS).find(([key]) => issue.msg.includes(key));
+      if (!match) return '';
+      const [, actions] = match;
+      return `
+        <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--${d.color === 'red' ? 'red' : 'accent'});border-radius:8px;padding:0.9rem 1.1rem;margin-top:0.75rem">
+          <div style="font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem">Suggested Fix</div>
+          <div style="font-size:0.82rem;color:var(--text);margin-bottom:0.75rem">${issue.msg}</div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            ${actions.map(a => `<button class="btn btn-sm btn-outline" onclick="${a.action}">${a.label}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }).join('') : '';
+
     document.getElementById('healthBar').innerHTML = `
       <div class="health-bar">
         <div>
@@ -688,6 +714,7 @@ async function loadHealth() {
           ${d.issues.length ? d.issues.map(i => `<div class="health-issue ${i.type}">⚠ ${i.msg}</div>`).join('') : '<div class="health-issue">✓ No issues detected</div>'}
         </div>
       </div>
+      ${suggestionCards}
     `;
   } catch(e) {}
 }
@@ -739,10 +766,9 @@ async function loadSlaves() {
               <span style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap">${pct}%</span>
             </div>
           </td>
-          <td><button class="btn btn-outline btn-sm" onclick="releaseSlave('${s.userId}')">Release</button></td>
         </tr>
       `;
-    }).join('') || '<tr><td colspan="6" class="loading">No active slaves</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="loading">No active slaves</td></tr>';
   } catch(e) {}
 }
 
@@ -976,20 +1002,6 @@ async function saveModules() {
     document.getElementById('modulesSaved').style.display = 'inline';
     toast('✅ Modules saved!');
   } catch(e) { toast('❌ Failed to save', 'error'); }
-}
-
-async function releaseSlave(userId) {
-  if (!confirm(`Release slave ${userId}? Their debt will be cleared and they will be freed.`)) return;
-  const res = await fetch('/api/action/release-slave', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId }) });
-  const d = await res.json();
-  d.success ? (toast('✅ Slave released!'), loadSlaves()) : toast('❌ ' + d.error, 'error');
-}
-
-async function seedMarket() {
-  if (!confirm('Re-seed the stock market? This will reset all stock prices to defaults.')) return;
-  const res = await fetch('/api/action/seed-market', { method: 'POST' });
-  const d = await res.json();
-  d.success ? (toast('✅ Market seeded with 15 stocks!'), loadStocks()) : toast('❌ ' + d.error, 'error');
 }
 
 async function wipeSlaveDebt() {
