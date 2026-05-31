@@ -117,42 +117,50 @@ footer {
 <script>
 async function loadServers() {
   try {
-    const [meRes, guildsRes] = await Promise.all([fetch('/api/me'), fetch('/api/guilds')]);
+    const [meRes, allGuildsRes, botGuildsRes] = await Promise.all([
+      fetch('/api/me'),
+      fetch('/api/all-admin-guilds'),
+      fetch('/api/guilds')
+    ]);
     const me = await meRes.json();
-    const guilds = await guildsRes.json();
+    const allGuilds = await allGuildsRes.json();
+    const botGuilds = await botGuildsRes.json();
+    const botGuildIds = new Set(botGuilds.map(g => g.id));
 
     document.getElementById('userAvatar').src = me.user?.avatar || '';
     document.getElementById('userName').textContent = me.user?.username || '';
 
-    if (!guilds.length) {
+    if (!allGuilds.length) {
       document.getElementById('serverGrid').innerHTML = `
         <div style="text-align:center;padding:3rem;color:var(--muted)">
-          <div style="font-size:2rem;margin-bottom:1rem">😔</div>
           <div style="font-weight:600;color:var(--text);margin-bottom:0.5rem">No servers found</div>
-          <div style="font-size:0.85rem">Add the bot to a server you admin first.</div>
-          <a href="/invite" style="display:inline-block;margin-top:1.5rem" class="btn btn-fill">+ Add Economic Bomb</a>
+          <div style="font-size:0.85rem">You need Administrator permission in a server to manage it.</div>
         </div>
       `;
       return;
     }
 
-    document.getElementById('serverGrid').innerHTML = guilds.map(g => {
+    document.getElementById('serverGrid').innerHTML = allGuilds.map(g => {
+      const hasBot = botGuildIds.has(g.id);
+      const isActive = me.guild?.id === g.id;
       const iconHtml = g.icon
         ? `<img src="${g.icon}" alt="${g.name}"/>`
         : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
-      const isActive = me.guild?.id === g.id;
       return `
-        <div class="server-card has-bot" onclick="selectServer('${g.id}', '${g.name.replace(/'/g, "\\'")}')">
+        <div class="server-card ${hasBot ? 'has-bot' : ''}" onclick="${hasBot ? `selectServer('${g.id}', '${g.name.replace(/'/g, "\\'")}')` : `addBot('${g.id}')`}">
           <div class="srv-avatar">${iconHtml}</div>
           <div class="srv-info">
             <div class="srv-name">${g.name}</div>
             <div class="srv-meta">
-              <span class="tag tag-green">✓ Bot active</span>
-              ${isActive ? '&nbsp;<span class="tag tag-muted">Current</span>' : ''}
+              ${hasBot
+                ? `<span class="tag tag-green">✓ Bot active</span>${isActive ? '&nbsp;<span class="tag tag-muted">Current</span>' : ''}`
+                : `<span class="tag tag-muted">Bot not added</span>`}
             </div>
           </div>
           <div class="srv-action">
-            <span class="btn ${isActive ? 'btn-outline' : 'btn-fill'}">${isActive ? 'Selected' : 'Open →'}</span>
+            <span class="btn ${hasBot ? (isActive ? 'btn-outline' : 'btn-fill') : 'btn-ghost'}">
+              ${hasBot ? (isActive ? 'Selected' : 'Open →') : '+ Add Bot'}
+            </span>
           </div>
         </div>
       `;
@@ -171,6 +179,24 @@ async function selectServer(id, name) {
     });
     const d = await res.json();
     if (d.success) window.location = '/dashboard';
+  } catch(e) {}
+}
+
+function addBot(guildId) {
+  const invite = `/invite-to?guild=${guildId}`;
+  const popup = window.open(invite, '_blank', 'width=500,height=700');
+  const timer = setInterval(() => {
+    if (popup && popup.closed) {
+      clearInterval(timer);
+      refreshSession();
+    }
+  }, 1000);
+}
+
+async function refreshSession() {
+  try {
+    await fetch('/api/refresh-guilds', { method: 'POST' });
+    loadServers();
   } catch(e) {}
 }
 

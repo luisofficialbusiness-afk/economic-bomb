@@ -101,20 +101,26 @@ app.get('/auth/callback', async (req, res) => {
                 : `https://cdn.discordapp.com/embed/avatars/0.png`
         };
 
-        req.session.guilds = adminGuilds.map(g => ({
-            id: g.id,
-            name: g.name,
+        // Store access token for session refresh later
+        req.session.accessToken = tokenData.access_token;
+
+        // All admin guilds (bot present or not) — for choose-server page
+        const allAdminGuilds = userGuilds.filter(g => (g.permissions & 0x8) === 0x8);
+        req.session.allAdminGuilds = allAdminGuilds.map(g => ({
+            id: g.id, name: g.name,
+            icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null
+        }));
+
+        // Only guilds where bot is present — for dashboard switcher
+        req.session.guilds = allAdminGuilds.filter(g => botGuilds.includes(g.id)).map(g => ({
+            id: g.id, name: g.name,
             icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
             isAdmin: true
         }));
 
-        if (adminGuilds.length === 0) return res.redirect('/no-server');
+        if (req.session.guilds.length === 0) return res.redirect('/no-server');
 
-        req.session.guild = {
-            id: adminGuilds[0].id,
-            name: adminGuilds[0].name,
-            icon: adminGuilds[0].icon ? `https://cdn.discordapp.com/icons/${adminGuilds[0].id}/${adminGuilds[0].icon}.png` : null
-        };
+        req.session.guild = req.session.guilds[0];
 
         res.redirect('/dashboard');
     } catch (err) {
@@ -155,6 +161,51 @@ app.get('/api/me', requireAuth, (req, res) => {
 
 app.get('/api/guilds', requireAuth, (req, res) => {
     res.json(req.session.guilds || []);
+});
+
+// All guilds user is admin in (bot present or not)
+app.get('/api/all-admin-guilds', requireAuth, (req, res) => {
+    res.json(req.session.allAdminGuilds || req.session.guilds || []);
+});
+
+// Invite bot to a specific guild
+app.get('/invite-to', requireAuth, (req, res) => {
+    const { guild } = req.query;
+    const base = BOT_INVITE;
+    const url = guild ? `${base}&guild_id=${guild}` : base;
+    res.redirect(url);
+});
+
+// Refresh session guilds after adding bot to a new server
+app.post('/api/refresh-guilds', requireAuth, async (req, res) => {
+    try {
+        if (!req.session.accessToken) return res.json({ success: false, error: 'No access token in session' });
+        const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
+            headers: { Authorization: `Bearer ${req.session.accessToken}` }
+        });
+        const userGuilds = await guildsRes.json();
+        if (!Array.isArray(userGuilds)) return res.json({ success: false });
+        const botGuilds = await getBotGuilds();
+        const adminGuilds = userGuilds.filter(g => (g.permissions & 0x8) === 0x8);
+
+        req.session.allAdminGuilds = adminGuilds.map(g => ({
+            id: g.id, name: g.name,
+            icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null
+        }));
+
+        req.session.guilds = adminGuilds
+            .filter(g => botGuilds.includes(g.id))
+            .map(g => ({
+                id: g.id, name: g.name,
+                icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
+                isAdmin: true
+            }));
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Refresh guilds error:', err);
+        res.json({ success: false });
+    }
 });
 
 app.get('/api/stats', requireAuth, async (req, res) => {
