@@ -668,7 +668,7 @@ app.post('/api/switch-guild', requireAuth, (req, res) => {
 app.get('/api/dev/guilds', requireDev, async (req, res) => {
     try {
         const botGuildRes = await fetch('https://discord.com/api/users/@me/guilds', {
-            headers: { Authorization: `Bot ${process.env.TOKEN}` }
+            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
         });
         const botGuilds = await botGuildRes.json();
         if (!Array.isArray(botGuilds)) return res.json([]);
@@ -775,6 +775,89 @@ app.post('/api/dev/guild/:guildId/tick', requireDev, async (req, res) => {
 // Dev: error logs
 app.get('/api/dev/logs', requireDev, (req, res) => {
     res.json(errorLogs);
+});
+
+// Dev: reset economy for any guild
+app.post('/api/dev/guild/:guildId/reset', requireDev, async (req, res) => {
+    try {
+        await User.updateMany({ guildId: req.params.guildId }, { $set: { balance: 0, bank: 0 } });
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// Dev: wipe all slaves for any guild
+app.post('/api/dev/guild/:guildId/wipe-slaves', requireDev, async (req, res) => {
+    try {
+        await Slave.updateMany({ guildId: req.params.guildId }, { $set: { ownerId: null, debt: 0 } });
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// Dev: seed market for any guild
+app.post('/api/dev/guild/:guildId/seed', requireDev, async (req, res) => {
+    const COMPANIES = [
+        { ticker: 'VLR', name: 'Velera Inc', price: 142.50 },
+        { ticker: 'FRGS', name: "Frogiee's Arcade", price: 34.20 },
+        { ticker: 'DOGE', name: 'Doge UB', price: 0.85 },
+        { ticker: 'CHRI', name: 'Cherri Inc', price: 58.00 },
+        { ticker: 'TGLC', name: 'TGLSC Corp', price: 210.00 },
+        { ticker: 'GNMT', name: 'Gn Math', price: 76.40 },
+        { ticker: 'CNOS', name: 'Cine OS', price: 99.99 },
+        { ticker: 'OVCL', name: 'Overcloaked Corp', price: 185.30 },
+        { ticker: 'TRFL', name: 'Truffled Inc', price: 47.60 },
+        { ticker: 'LNR', name: 'LUNAR Research Inc', price: 320.00 },
+        { ticker: 'VOID', name: 'Void Network Corp', price: 5.55 },
+        { ticker: 'HDR', name: 'Hydra Network Corp', price: 88.88 },
+        { ticker: 'NRGX', name: 'NRG Exchange', price: 500.00 },
+        { ticker: 'PLSM', name: 'Plasma Dynamics Inc', price: 63.75 },
+        { ticker: 'ZRTH', name: 'Zeroth Systems', price: 112.00 },
+    ];
+    try {
+        const guildId = req.params.guildId;
+        for (const c of COMPANIES) {
+            await Stock.updateOne(
+                { guildId, ticker: c.ticker },
+                { $set: { name: c.name, price: c.price, history: [c.price], totalShares: 0 }, $setOnInsert: { guildId, ticker: c.ticker } },
+                { upsert: true }
+            );
+        }
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// Dev: ban user in any guild
+app.post('/api/dev/guild/:guildId/ban', requireDev, async (req, res) => {
+    const { userId, reason } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    try {
+        await Config.findOneAndUpdate(
+            { guildId: req.params.guildId },
+            { $addToSet: { bannedUsers: { userId, reason: reason || 'Dev ban', bannedAt: new Date() } } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// Dev: global stats across all guilds
+app.get('/api/dev/global-stats', requireDev, async (req, res) => {
+    try {
+        const [userCount, slaveCount, stockCount, totalWalletAgg] = await Promise.all([
+            User.countDocuments(),
+            Slave.countDocuments({ ownerId: { $ne: null } }),
+            Stock.countDocuments(),
+            User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }])
+        ]);
+        const guildIds = [...new Set((await User.distinct('guildId')))];
+        res.json({
+            totalUsers: userCount,
+            totalSlaves: slaveCount,
+            totalStocks: stockCount,
+            totalGuilds: guildIds.length,
+            totalMoney: totalWalletAgg[0]?.total?.toFixed(2) || '0.00',
+            guildIds
+        });
+    } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
