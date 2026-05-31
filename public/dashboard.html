@@ -251,17 +251,17 @@ input::placeholder { color: var(--muted); }
 <div class="layout">
   <aside class="sidebar">
     <div class="sb-label">Overview</div>
-    <a class="sb-link active" data-section="overview">📊 Overview</a>
+    <a class="sb-link active" data-section="overview">Overview</a>
     <div class="sb-label">Economy</div>
-    <a class="sb-link" data-section="leaderboard">🏆 Leaderboard</a>
-    <a class="sb-link" data-section="slaves">⛓️ Slaves</a>
-    <a class="sb-link" data-section="stocks">📈 Stocks</a>
+    <a class="sb-link" data-section="leaderboard">Leaderboard</a>
+    <a class="sb-link" data-section="slaves">Slaves</a>
+    <a class="sb-link" data-section="stocks"> Stocks</a>
     <div class="sb-label">Admin</div>
-    <a class="sb-link" data-section="anticheat">🛡️ Anti-Cheat</a>
-    <a class="sb-link" data-section="bans">🔨 Bans</a>
-    <a class="sb-link" data-section="modules">🧩 Modules</a>
-    <a class="sb-link" data-section="channels">💬 Channels</a>
-    <a class="sb-link" data-section="actions">⚡ Actions</a>
+    <a class="sb-link" data-section="anticheat">Anti-Cheat</a>
+    <a class="sb-link" data-section="bans">Bans</a>
+    <a class="sb-link" data-section="modules">Modules</a>
+    <a class="sb-link" data-section="channels"> Channels</a>
+    <a class="sb-link" data-section="actions"> Actions</a>
   </aside>
 
   <main class="content">
@@ -275,7 +275,7 @@ input::placeholder { color: var(--muted); }
       <div class="breakdown-grid" id="breakdownGrid"></div>
       <div class="table-wrap">
         <div class="table-head">
-          <h3>🕐 Activity Feed</h3>
+          <h3> Activity Feed</h3>
           <span id="activityRefresh" style="font-size:0.72rem;color:var(--muted)">Auto-refreshes every 60s</span>
         </div>
         <div id="activityFeed" style="padding:1rem 1.5rem">
@@ -316,7 +316,7 @@ input::placeholder { color: var(--muted); }
             <span style="color:var(--muted);font-size:0.8rem">⌕</span>
             <input type="text" placeholder="Search..." oninput="filterTable('slaveBody', this.value)"/>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="wipeSlaveDebt()" style="margin-left:auto">🗑️ Wipe All Debt</button>
+          <button class="btn btn-danger btn-sm" onclick="wipeSlaveDebt()" style="margin-left:auto">Wipe All Debt</button>
           <span id="slaveCount"></span>
         </div>
         <table>
@@ -359,10 +359,10 @@ input::placeholder { color: var(--muted); }
         </table>
       </div>
 
-      <!-- Remove stock inline panel -->
+
       <div id="removeStockPanel" style="display:none;margin-top:1rem">
         <div class="action-card">
-          <h3>🗑️ Remove Stock from Flagged Player</h3>
+          <h3>Remove Stock from Flagged Player</h3>
           <p>Enter the ticker to remove all shares from <strong id="removeStockTarget"></strong>.</p>
           <div class="input-row">
             <input type="text" id="acRemoveTicker" placeholder="Ticker (e.g. TGLC)" style="text-transform:uppercase"/>
@@ -378,7 +378,7 @@ input::placeholder { color: var(--muted); }
       <div class="sec-title">Bans</div>
       <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Banned users get an error when using any bot command. The ban must be checked in your bot's command handler.</p>
       <div class="action-card" style="margin-bottom:1.5rem;max-width:480px">
-        <h3>🔨 Ban User</h3>
+        <h3>Ban User</h3>
         <p>Enter a Discord user ID and an optional reason.</p>
         <div class="input-row">
           <input type="text" id="banUserId" placeholder="User ID"/>
@@ -435,7 +435,7 @@ input::placeholder { color: var(--muted); }
       <div class="action-grid">
 
         <div class="action-card">
-          <h3>💰 Give Money</h3>
+          <h3>Give Money</h3>
           <p>Add money directly to a player's wallet using their Discord user ID.</p>
           <div class="input-row">
             <input type="text" id="jackpotUser" placeholder="User ID"/>
@@ -445,7 +445,7 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>🔧 Set Balance</h3>
+          <h3>Set Balance</h3>
           <p>Override a player's wallet balance to an exact amount.</p>
           <div class="input-row">
             <input type="text" id="setBalUser" placeholder="User ID"/>
@@ -455,7 +455,7 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>🏦 Set Bank</h3>
+          <h3>Set Bank</h3>
           <p>Override a player's bank balance to an exact amount.</p>
           <div class="input-row">
             <input type="text" id="setBankUser" placeholder="User ID"/>
@@ -465,7 +465,7 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>📈 Fix Stock Price</h3>
+          <h3>Fix Stock Price</h3>
           <p>Manually set a stock's price to correct pump & dump activity.</p>
           <div class="input-row">
             <select id="stockTicker">
@@ -477,7 +477,7 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>🗑️ Remove Stock from Player</h3>
+          <h3>Remove Stock from Player</h3>
           <p>Remove all shares of a specific stock from a player's portfolio.</p>
           <div class="input-row">
             <input type="text" id="removeStockUser" placeholder="User ID"/>
@@ -487,13 +487,13 @@ input::placeholder { color: var(--muted); }
         </div>
 
         <div class="action-card">
-          <h3>⚡ Tick Stock Market</h3>
+          <h3>Tick Stock Market</h3>
           <p>Manually trigger a stock market fluctuation — same ±3% logic as the 30-minute auto update.</p>
           <button class="btn btn-outline" onclick="tickStocks()">Run Market Tick</button>
         </div>
 
         <div class="action-card">
-          <h3>⏱️ Reset Cooldowns</h3>
+          <h3>⏱Reset Cooldowns</h3>
           <p>Clear all active cooldowns for all players immediately.</p>
           <button class="btn btn-danger" onclick="resetCooldowns()">Reset All Cooldowns</button>
         </div>
