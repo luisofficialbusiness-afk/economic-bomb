@@ -150,10 +150,12 @@ app.get('/dashboard', requireAuth, (req, res) => {
 
 app.post('/api/switch-guild', requireAuth, (req, res) => {
     const { guildId } = req.body;
-    const guild = req.session.guilds?.find(g => g.id === guildId);
+    // Search both bot-present guilds and all admin guilds
+    const guild = req.session.guilds?.find(g => g.id === guildId)
+        || req.session.allAdminGuilds?.find(g => g.id === guildId);
     if (!guild) return res.status(403).json({ error: 'Not authorized for that server' });
-    req.session.guild = guild;
-    res.json({ success: true, guild });
+    req.session.guild = { ...guild, isAdmin: true };
+    res.json({ success: true, guild: req.session.guild });
 });
 
 app.get('/api/me', requireAuth, (req, res) => {

@@ -580,12 +580,22 @@ async function loadServers() {
   }
 }
 
-function switchServer(id, name) {
-  currentGuildId = id;
-  document.getElementById('currentServerName').textContent = name;
-  document.getElementById('serverBtn').classList.remove('open');
-  document.getElementById('serverDropdown').classList.remove('open');
-  window.location = '/dashboard?guild=' + id;
+async function switchServer(id, name) {
+  try {
+    const res = await fetch('/api/switch-guild', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildId: id })
+    });
+    const d = await res.json();
+    if (d.success) {
+      window.location = '/dashboard';
+    } else {
+      alert('Could not switch to that server: ' + (d.error || 'Unknown error'));
+    }
+  } catch(e) {
+    console.error('Switch server error:', e);
+  }
 }
 
 function toast(msg, type = 'success') {
