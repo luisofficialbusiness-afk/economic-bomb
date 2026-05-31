@@ -228,6 +228,7 @@ app.get('/api/slaves', requireAuth, async (req, res) => {
 
 app.get('/api/stocks', requireAuth, async (req, res) => {
     try {
+        const guildId = req.session.guild.id;
         const stocks = await Stock.find({ guildId });
         const portfolios = await Portfolio.find({});
         const holderCounts = {};
@@ -512,23 +513,16 @@ app.post('/api/modules', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
-// ACTION: RELEASE SINGLE SLAVE
 app.post('/api/action/release-slave', requireAuth, async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
     try {
         const guildId = req.session.guild.id;
-        await Slave.findOneAndUpdate(
-            { userId, guildId },
-            { $set: { ownerId: null, debt: 0 } }
-        );
+        await Slave.findOneAndUpdate({ userId, guildId }, { $set: { ownerId: null, debt: 0 } });
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false, error: 'Failed' });
-    }
+    } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
 
-// ACTION: SEED MARKET
 app.post('/api/action/seed-market', requireAuth, async (req, res) => {
     const COMPANIES = [
         { ticker: 'VLR',  name: 'Velera Inc',           price: 142.50 },
@@ -550,15 +544,16 @@ app.post('/api/action/seed-market', requireAuth, async (req, res) => {
     try {
         const guildId = req.session.guild.id;
         for (const c of COMPANIES) {
-            await Stock.findOneAndUpdate(
+            await Stock.updateOne(
                 { guildId, ticker: c.ticker },
-                { guildId, ...c, history: [c.price], totalShares: 0 },
-                { upsert: true, new: true }
+                { $set: { name: c.name, price: c.price, history: [c.price], totalShares: 0 }, $setOnInsert: { guildId, ticker: c.ticker } },
+                { upsert: true }
             );
         }
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: 'Failed to seed market' });
+        console.error('Seed market error:', err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
