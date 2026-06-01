@@ -271,6 +271,7 @@ input::placeholder { color: var(--muted); }
     <a class="sb-link" data-section="actions"> Actions</a>
     <div class="sb-label" id="devSidebarLabel" style="display:none">Developer</div>
     <a class="sb-link" id="devSidebarLink" data-section="devpanel" style="display:none">Debug Panel</a>
+    <a class="sb-link" id="devBannedLink" data-section="dev-banned" style="display:none">Banned Servers</a>
   </aside>
 
   <main class="content">
@@ -530,6 +531,7 @@ input::placeholder { color: var(--muted); }
         <button class="dev-tab" onclick="switchDevTab('announce')">Announce</button>
         <button class="dev-tab" onclick="switchDevTab('tools')">Tools</button>
         <button class="dev-tab" onclick="switchDevTab('logs')">Logs</button>
+        <button class="dev-tab" onclick="switchDevTab('banned')">Banned Servers</button>
       </div>
 
       <!-- OVERVIEW TAB -->
@@ -585,6 +587,8 @@ input::placeholder { color: var(--muted); }
               <button class="btn btn-fill btn-sm" onclick="devGuildAction('seed')">Seed Market</button>
               <button class="btn btn-danger btn-sm" onclick="devGuildAction('wipe-slaves')">Wipe Slaves</button>
               <button class="btn btn-danger btn-sm" onclick="devGuildAction('reset')">Reset Economy</button>
+              <button class="btn btn-danger btn-sm" id="devBanServerBtn" onclick="devBanServer()" style="background:#7f1d1d;border-color:#991b1b">Ban Server</button>
+              <button class="btn btn-outline btn-sm" id="devUnbanServerBtn" onclick="devUnbanServer()" style="display:none">Unban Server</button>
             </div>
           </div>
         </div>
@@ -732,6 +736,24 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
+      <!-- BANNED SERVERS TAB -->
+      <div class="dev-tab-content" id="devtab-banned" style="display:none">
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red)">
+          Banned servers cannot use any Economic Bomb commands. All command attempts from banned servers show a ban message.
+        </div>
+        <div class="table-wrap">
+          <div class="table-head">
+            <h3>Banned Servers</h3>
+            <button class="btn btn-outline btn-sm" onclick="devLoadBannedServers()">Refresh</button>
+            <span id="devBannedCount" style="font-size:0.75rem;color:var(--muted)"></span>
+          </div>
+          <table>
+            <thead><tr><th>Guild ID</th><th>Reason</th><th>Banned At</th><th>Action</th></tr></thead>
+            <tbody id="devBannedTbody"><tr><td colspan="4" class="loading">Click Refresh to load</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 </div>
 
@@ -857,6 +879,7 @@ async function loadMe() {
       document.querySelectorAll('.sb-label:not(#devSidebarLabel), .sb-link:not(#devSidebarLink)').forEach(el => el.style.display = 'none');
       document.getElementById('devSidebarLabel').style.display = '';
       document.getElementById('devSidebarLink').style.display = '';
+      const el = document.getElementById('devBannedLink'); if (el) el.style.display = '';
       document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.getElementById('devSidebarLink').classList.add('active');
@@ -868,6 +891,7 @@ async function loadMe() {
     } else {
       document.getElementById('devSidebarLabel').style.display = 'none';
       document.getElementById('devSidebarLink').style.display = 'none';
+      const elb = document.getElementById('devBannedLink'); if (elb) elb.style.display = 'none';
       document.querySelectorAll('.sb-label:not(#devSidebarLabel), .sb-link:not(#devSidebarLink)').forEach(el => el.style.display = '');
     }
 
@@ -885,6 +909,7 @@ function loadSection(sec) {
   if (sec === 'bans') loadBans();
   if (sec === 'modules') loadModules();
   if (sec === 'devpanel') { loadDevGuilds(); loadDevLogs(); }
+  if (sec === 'dev-banned') { switchDevTab('banned'); devLoadBannedServers(); }
 }
 
 // Auto-refresh every 60s
@@ -1398,6 +1423,7 @@ async function inspectGuild(guildId) {
 
 async function loadDevGuildStats() {
   const guildId = document.getElementById('devGuildIdInput').value.trim();
+  currentInspectedGuildId = guildId;
   if (!guildId) return;
   document.getElementById('devGuildStatsBody').textContent = 'Loading...';
   document.getElementById('devGuildActions').style.display = 'none';
@@ -1418,6 +1444,16 @@ async function loadDevGuildStats() {
       <div style="font-size:0.8rem;color:var(--muted)">Allowed channels: <span style="font-family:'DM Mono',monospace">${d.allowedChannels.length ? d.allowedChannels.length + ' set' : 'all'}</span></div>
     `;
     document.getElementById('devGuildActions').style.display = 'block';
+      // Check if server is banned and toggle ban/unban buttons
+      try {
+        const bannedRes = await fetch('/api/dev/banned-servers');
+        const bannedList = await bannedRes.json();
+        const isBanned = bannedList.some(b => b.guildId === guildId);
+        const banBtn = document.getElementById('devBanServerBtn');
+        const unbanBtn = document.getElementById('devUnbanServerBtn');
+        if (banBtn) banBtn.style.display = isBanned ? 'none' : '';
+        if (unbanBtn) unbanBtn.style.display = isBanned ? '' : 'none';
+      } catch(e) {}
   } catch(e) {
     document.getElementById('devGuildStatsBody').textContent = 'Failed: ' + e.message;
   }
@@ -1674,6 +1710,78 @@ async function devSendAnnouncement() {
     resultEl.textContent = '❌ Failed: ' + e.message;
   }
 }
+
+// ── DEV: BAN/UNBAN SERVER ─────────────────────────────────────────────────────
+let currentInspectedGuildId = null;
+
+async function devBanServer() {
+  if (!currentInspectedGuildId) return toast('Inspect a guild first', 'error');
+  const reason = prompt('Reason for banning this server:');
+  if (reason === null) return;
+  if (!confirm(`Ban server ${currentInspectedGuildId}? All users in this server will be blocked from using the bot.`)) return;
+  try {
+    const res = await fetch('/api/dev/guild/' + currentInspectedGuildId + '/ban-server', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ reason: reason || 'Banned by developer' })
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast('Server banned successfully');
+      document.getElementById('devBanServerBtn').style.display = 'none';
+      document.getElementById('devUnbanServerBtn').style.display = '';
+      devLoadBannedServers();
+    } else { toast('Error: ' + d.error, 'error'); }
+  } catch(e) { toast('Request failed', 'error'); }
+}
+
+async function devUnbanServer() {
+  if (!currentInspectedGuildId) return toast('Inspect a guild first', 'error');
+  if (!confirm(`Unban server ${currentInspectedGuildId}?`)) return;
+  try {
+    const res = await fetch('/api/dev/guild/' + currentInspectedGuildId + '/unban-server', {
+      method: 'POST', headers: {'Content-Type':'application/json'}
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast('Server unbanned');
+      document.getElementById('devBanServerBtn').style.display = '';
+      document.getElementById('devUnbanServerBtn').style.display = 'none';
+      devLoadBannedServers();
+    } else { toast('Error: ' + d.error, 'error'); }
+  } catch(e) { toast('Request failed', 'error'); }
+}
+
+async function devLoadBannedServers() {
+  const tbody = document.getElementById('devBannedTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>';
+  try {
+    const res = await fetch('/api/dev/banned-servers');
+    const bans = await res.json();
+    document.getElementById('devBannedCount').textContent = bans.length + ' banned';
+    tbody.innerHTML = bans.length ? bans.map(b => `
+      <tr>
+        <td class="mono" style="font-size:0.75rem">${b.guildId}</td>
+        <td style="font-size:0.82rem;color:var(--muted)">${b.reason || 'No reason given'}</td>
+        <td class="mono" style="font-size:0.72rem;color:var(--muted)">${b.bannedAt ? new Date(b.bannedAt).toLocaleDateString() : '—'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="devUnbanById('${b.guildId}')">Unban</button>
+          <button class="btn btn-outline btn-sm" style="margin-left:0.3rem" onclick="inspectGuild('${b.guildId}')">Inspect</button>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="loading">No banned servers</td></tr>';
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">Error loading</td></tr>';
+  }
+}
+
+async function devUnbanById(guildId) {
+  if (!confirm('Unban ' + guildId + '?')) return;
+  const res = await fetch('/api/dev/guild/' + guildId + '/unban-server', { method: 'POST', headers: {'Content-Type':'application/json'} });
+  const d = await res.json();
+  d.success ? (toast('Unbanned'), devLoadBannedServers()) : toast('Error: ' + d.error, 'error');
+}
+
 </script>
 </body>
 </html>

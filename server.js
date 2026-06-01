@@ -839,6 +839,45 @@ app.post('/api/dev/guild/:guildId/ban', requireDev, async (req, res) => {
     } catch(err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+// Ban a server from using Economic Bomb entirely
+app.post('/api/dev/guild/:guildId/ban-server', requireDev, async (req, res) => {
+    const { reason } = req.body;
+    const guildId = req.params.guildId;
+    try {
+        await Config.findOneAndUpdate(
+            { guildId: 'global' },
+            { $pull: { bannedGuilds: { guildId } } },
+            { upsert: true }
+        );
+        await Config.findOneAndUpdate(
+            { guildId: 'global' },
+            { $push: { bannedGuilds: { guildId, reason: reason || 'Banned by developer', bannedAt: new Date() } } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// Unban a server
+app.post('/api/dev/guild/:guildId/unban-server', requireDev, async (req, res) => {
+    const guildId = req.params.guildId;
+    try {
+        await Config.findOneAndUpdate(
+            { guildId: 'global' },
+            { $pull: { bannedGuilds: { guildId } } }
+        );
+        res.json({ success: true });
+    } catch(err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// List all banned servers
+app.get('/api/dev/banned-servers', requireDev, async (req, res) => {
+    try {
+        const globalConfig = await Config.findOne({ guildId: 'global' });
+        res.json(globalConfig?.bannedGuilds || []);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 // Dev: global stats across all guilds
 app.get('/api/dev/global-stats', requireDev, async (req, res) => {
     try {

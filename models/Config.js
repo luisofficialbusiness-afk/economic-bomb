@@ -27,6 +27,14 @@ const ConfigSchema = new mongoose.Schema({
             leaderboard: { type: Boolean, default: true }
         },
         default: {}
+    },
+    bannedGuilds: {
+        type: [{
+            guildId: String,
+            reason: String,
+            bannedAt: { type: Date, default: Date.now }
+        }],
+        default: []
     }
 });
 
