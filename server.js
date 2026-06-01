@@ -860,4 +860,160 @@ app.get('/api/dev/global-stats', requireDev, async (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+// Dev: detect crashed stock markets (any stock at $0.01)
+app.get('/api/dev/crashed-markets', requireDev, async (req, res) => {
+    try {
+        const crashedStocks = await Stock.find({ price: { $lte: 0.02 } });
+        const byGuild = {};
+        for (const s of crashedStocks) {
+            if (!byGuild[s.guildId]) byGuild[s.guildId] = [];
+            byGuild[s.guildId].push({ ticker: s.ticker, name: s.name, price: s.price });
+        }
+        const result = Object.entries(byGuild).map(([guildId, stocks]) => ({ guildId, crashedStocks: stocks }));
+        res.json(result);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Dev: detect broken economies (one player has >80% of all money)
+app.get('/api/dev/broken-economies', requireDev, async (req, res) => {
+    try {
+        const guildIds = await User.distinct('guildId');
+        const broken = [];
+        for (const guildId of guildIds) {
+            const users = await User.find({ guildId });
+            if (users.length < 2) continue;
+            const total = users.reduce((a, u) => a + u.balance + u.bank, 0);
+            if (total === 0) continue;
+            const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
+            const topShare = (sorted[0].balance + sorted[0].bank) / total;
+            if (topShare > 0.8) {
+                broken.push({
+                    guildId,
+                    topUserId: sorted[0].userId,
+                    topTotal: (sorted[0].balance + sorted[0].bank).toFixed(2),
+                    sharePercent: (topShare * 100).toFixed(1),
+                    totalCirculation: total.toFixed(2),
+                    playerCount: users.length
+                });
+            }
+        }
+        res.json(broken);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Dev: new players per day (last 14 days) — uses _id ObjectId timestamp
+app.get('/api/dev/new-players', requireDev, async (req, res) => {
+    try {
+        const days = 14;
+        const now = new Date();
+        const result = [];
+        for (let i = days - 1; i >= 0; i--) {
+            const start = new Date(now);
+            start.setDate(start.getDate() - i);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 1);
+            const count = await User.countDocuments({
+                _id: {
+                    $gte: mongoose.Types.ObjectId.createFromTime(Math.floor(start.getTime() / 1000)),
+                    $lt: mongoose.Types.ObjectId.createFromTime(Math.floor(end.getTime() / 1000))
+                }
+            });
+            result.push({ date: start.toISOString().substring(0, 10), count });
+        }
+        res.json(result);
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Dev: active sessions
+const activeSessions = new Map();
+app.use((req, res, next) => {
+    if (req.session?.user) {
+        activeSessions.set(req.session.id, {
+            userId: req.session.user.id,
+            username: req.session.user.username,
+            avatar: req.session.user.avatar,
+            guild: req.session.guild?.name || 'None',
+            guildId: req.session.guild?.id || null,
+            lastSeen: new Date().toISOString(),
+            sessionId: req.session.id
+        });
+    }
+    next();
+});
+
+app.get('/api/dev/sessions', requireDev, (req, res) => {
+    const cutoff = Date.now() - 30 * 60 * 1000; // last 30 min
+    const active = [];
+    for (const [id, s] of activeSessions.entries()) {
+        if (new Date(s.lastSeen).getTime() > cutoff) active.push(s);
+        else activeSessions.delete(id);
+    }
+    res.json(active);
+});
+
+// Dev: global announcement — send embed to system/first text channel of all guilds
+app.post('/api/dev/announce', requireDev, async (req, res) => {
+    const { title, message, confirmPhrase } = req.body;
+    // Extra security — must pass exact confirm phrase
+    if (confirmPhrase !== 'ANNOUNCE TO ALL SERVERS') {
+        return res.status(403).json({ error: 'Invalid confirmation phrase. Type exactly: ANNOUNCE TO ALL SERVERS' });
+    }
+    if (!title || !message) return res.status(400).json({ error: 'Missing title or message' });
+    try {
+        const botGuildRes = await fetch('https://discord.com/api/users/@me/guilds', {
+            headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
+        });
+        const botGuilds = await botGuildRes.json();
+        if (!Array.isArray(botGuilds)) return res.status(500).json({ error: 'Could not fetch bot guilds' });
+
+        let sent = 0, failed = 0;
+        for (const guild of botGuilds) {
+            try {
+                const chRes = await fetch(`https://discord.com/api/guilds/${guild.id}/channels`, {
+                    headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` }
+                });
+                const channels = await chRes.json();
+                if (!Array.isArray(channels)) { failed++; continue; }
+                const textCh = channels
+                    .filter(c => c.type === 0)
+                    .sort((a, b) => a.position - b.position)[0];
+                if (!textCh) { failed++; continue; }
+                await fetch(`https://discord.com/api/channels/${textCh.id}/messages`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bot ${process.env.BOT_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        embeds: [{
+                            title,
+                            description: message,
+                            color: 0xFFD700,
+                            footer: { text: 'Economic Bomb — Global Announcement' },
+                            timestamp: new Date().toISOString()
+                        }]
+                    })
+                });
+                sent++;
+            } catch { failed++; }
+        }
+        res.json({ success: true, sent, failed });
+    } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Dev: activity feed (in-memory ring buffer, populated by bot via shared endpoint)
+const activityFeed = [];
+const MAX_ACTIVITY = 100;
+
+// Bot posts activity here (called from index.js)
+app.post('/api/dev/activity', (req, res) => {
+    const { userId, guildId, command, secret } = req.body;
+    if (secret !== process.env.ACTIVITY_SECRET) return res.status(403).json({ error: 'Unauthorized' });
+    activityFeed.unshift({ userId, guildId, command, ts: new Date().toISOString() });
+    if (activityFeed.length > MAX_ACTIVITY) activityFeed.pop();
+    res.json({ success: true });
+});
+
+app.get('/api/dev/activity', requireDev, (req, res) => {
+    res.json(activityFeed);
+});
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));

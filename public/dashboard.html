@@ -216,6 +216,13 @@ input::placeholder { color: var(--muted); }
 .sev-high { background: rgba(239,68,68,0.1); color: var(--red); }
 .sev-medium { background: rgba(234,179,8,0.1); color: var(--accent); }
 
+.dev-tab { background: none; border: none; padding: 0.4rem 0.9rem; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.dev-tab:hover { color: var(--text); background: var(--bg); }
+.dev-tab.active { color: var(--text); background: var(--bg); border: 1px solid var(--border); }
+.dev-tab-content { display: none; }
+.dev-tab-content.active { display: block; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
 @media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } .breakdown-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -514,100 +521,217 @@ input::placeholder { color: var(--muted); }
       <div class="sec-label">Developer</div>
       <div class="sec-title">Dev Console</div>
 
-      <!-- Global stats -->
-      <div class="stat-grid" style="margin-bottom:1.5rem" id="devGlobalStats">
-        <div class="stat-card"><span class="stat-n blue" id="devGuildCount">—</span><div class="stat-l">Bot Servers</div></div>
-        <div class="stat-card"><span class="stat-n green" id="devGlobalUsers">—</span><div class="stat-l">Total Users</div></div>
-        <div class="stat-card"><span class="stat-n yellow" id="devGlobalMoney">—</span><div class="stat-l">Total Money</div></div>
-        <div class="stat-card"><span class="stat-n red" id="devGlobalSlaves">—</span><div class="stat-l">Total Slaves</div></div>
-        <div class="stat-card"><span class="stat-n muted" id="devGlobalStocks">—</span><div class="stat-l">Total Stocks</div></div>
-        <div class="stat-card"><span class="stat-n red" id="devLogCount">0</span><div class="stat-l">Error Logs</div></div>
+      <!-- Dev tabs -->
+      <div style="display:flex;gap:0.25rem;margin-bottom:2rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.3rem;width:fit-content">
+        <button class="dev-tab active" onclick="switchDevTab('overview')">Overview</button>
+        <button class="dev-tab" onclick="switchDevTab('activity')">Live Activity</button>
+        <button class="dev-tab" onclick="switchDevTab('alerts')">Alerts</button>
+        <button class="dev-tab" onclick="switchDevTab('sessions')">Sessions</button>
+        <button class="dev-tab" onclick="switchDevTab('announce')">Announce</button>
+        <button class="dev-tab" onclick="switchDevTab('tools')">Tools</button>
+        <button class="dev-tab" onclick="switchDevTab('logs')">Logs</button>
       </div>
 
-      <!-- GUILD LIST -->
-      <div class="table-wrap" style="margin-bottom:1.5rem">
-        <div class="table-head">
-          <h3>All Bot Servers</h3>
-          <button class="btn btn-outline btn-sm" onclick="loadDevGuilds()">↻ Refresh</button>
-          <div class="table-search">
-            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
-            <input type="text" placeholder="Search servers..." oninput="filterTable('devGuildBody', this.value)"/>
-          </div>
-        </div>
-        <table>
-          <thead><tr><th>Server</th><th>Guild ID</th><th>Players</th><th>Slaves</th><th>Actions</th></tr></thead>
-          <tbody id="devGuildBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
-        </table>
-      </div>
-
-      <!-- GUILD INSPECTOR -->
-      <div class="table-wrap" style="margin-bottom:1.5rem" id="devGuildInspector">
-        <div class="table-head">
-          <h3>Guild Inspector</h3>
-          <div class="table-search">
-            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
-            <input type="text" id="devGuildIdInput" placeholder="Guild ID..."/>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="loadDevGuildStats()">Inspect</button>
-        </div>
-        <div id="devGuildStatsBody" style="padding:1.25rem 1.5rem;font-size:0.85rem;color:var(--muted)">Enter a guild ID above and click Inspect.</div>
-        <div id="devGuildActions" style="display:none;padding:0 1.25rem 1.25rem;display:none">
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem">
-            <button class="btn btn-outline btn-sm" onclick="devGuildAction('tick')">Force Tick</button>
-            <button class="btn btn-fill btn-sm" onclick="devGuildAction('seed')">Seed Market</button>
-            <button class="btn btn-danger btn-sm" onclick="devGuildAction('wipe-slaves')">Wipe Slaves</button>
-            <button class="btn btn-danger btn-sm" onclick="devGuildAction('reset')">Reset Economy</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- USER EDITOR -->
-      <div class="action-grid" style="margin-bottom:1.5rem">
-        <div class="action-card">
-          <h3>User Balance Editor</h3>
-          <p>Look up and edit any user's balance across any guild.</p>
-          <div class="input-row">
-            <input type="text" id="devUserId" placeholder="User ID"/>
-            <button class="btn btn-outline btn-sm" onclick="loadDevUser()">Lookup</button>
-          </div>
-          <div id="devUserResults" style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted)"></div>
+      <!-- OVERVIEW TAB -->
+      <div class="dev-tab-content active" id="devtab-overview">
+        <div class="stat-grid" style="margin-bottom:1.5rem">
+          <div class="stat-card"><span class="stat-n blue" id="devGuildCount">—</span><div class="stat-l">Bot Servers</div></div>
+          <div class="stat-card"><span class="stat-n green" id="devGlobalUsers">—</span><div class="stat-l">Total Users</div></div>
+          <div class="stat-card"><span class="stat-n yellow" id="devGlobalMoney">—</span><div class="stat-l">Total Money</div></div>
+          <div class="stat-card"><span class="stat-n red" id="devGlobalSlaves">—</span><div class="stat-l">Total Slaves</div></div>
+          <div class="stat-card"><span class="stat-n muted" id="devGlobalStocks">—</span><div class="stat-l">Total Stocks</div></div>
+          <div class="stat-card"><span class="stat-n red" id="devLogCount">0</span><div class="stat-l">Error Logs</div></div>
         </div>
 
-        <div class="action-card">
-          <h3>Cross-Server Ban</h3>
-          <p>Ban a user from any guild by ID.</p>
-          <div class="input-row">
-            <input type="text" id="devBanGuild" placeholder="Guild ID"/>
-            <input type="text" id="devBanUser" placeholder="User ID"/>
+        <!-- New players chart -->
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-head"><h3>New Players — Last 14 Days</h3><button class="btn btn-outline btn-sm" onclick="loadDevNewPlayers()">↻</button></div>
+          <div style="padding:1.5rem">
+            <div id="devPlayerChart" style="display:flex;align-items:flex-end;gap:6px;height:80px"></div>
+            <div id="devPlayerChartLabels" style="display:flex;gap:6px;margin-top:0.4rem"></div>
           </div>
-          <div class="input-row">
-            <input type="text" id="devBanReason" placeholder="Reason (optional)"/>
-          </div>
-          <button class="btn btn-danger" onclick="devBanUser()">Ban User</button>
         </div>
 
-        <div class="action-card">
-          <h3>Force Stock Tick</h3>
-          <p>Force a stock market fluctuation on any guild.</p>
-          <div class="input-row">
-            <input type="text" id="devTickGuildId" placeholder="Guild ID"/>
+        <!-- All guilds -->
+        <div class="table-wrap">
+          <div class="table-head">
+            <h3>All Bot Servers</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadDevGuilds()">↻ Refresh</button>
+            <div class="table-search">
+              <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+              <input type="text" placeholder="Search..." oninput="filterTable('devGuildBody', this.value)"/>
+            </div>
           </div>
-          <button class="btn btn-outline" onclick="devTickStocks()">Force Tick</button>
+          <table>
+            <thead><tr><th>Server</th><th>Guild ID</th><th>Players</th><th>Slaves</th><th>Actions</th></tr></thead>
+            <tbody id="devGuildBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Guild Inspector -->
+        <div class="table-wrap" style="margin-top:1rem" id="devGuildInspector">
+          <div class="table-head">
+            <h3>Guild Inspector</h3>
+            <div class="table-search">
+              <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+              <input type="text" id="devGuildIdInput" placeholder="Guild ID..."/>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="loadDevGuildStats()">Inspect</button>
+          </div>
+          <div id="devGuildStatsBody" style="padding:1.25rem 1.5rem;font-size:0.85rem;color:var(--muted)">Enter a guild ID above and click Inspect.</div>
+          <div id="devGuildActions" style="display:none;padding:0 1.25rem 1.25rem">
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem">
+              <button class="btn btn-outline btn-sm" onclick="devGuildAction('tick')">Force Tick</button>
+              <button class="btn btn-fill btn-sm" onclick="devGuildAction('seed')">Seed Market</button>
+              <button class="btn btn-danger btn-sm" onclick="devGuildAction('wipe-slaves')">Wipe Slaves</button>
+              <button class="btn btn-danger btn-sm" onclick="devGuildAction('reset')">Reset Economy</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ERROR LOGS -->
-      <div class="table-wrap">
-        <div class="table-head">
-          <h3>Error Logs</h3>
-          <button class="btn btn-outline btn-sm" onclick="loadDevLogs()">↻ Refresh</button>
-          <span id="devLogsTs" style="font-size:0.72rem;color:var(--muted)"></span>
+      <!-- LIVE ACTIVITY TAB -->
+      <div class="dev-tab-content" id="devtab-activity" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div>
+            <div style="font-size:0.9rem;font-weight:600">Live Activity Feed</div>
+            <div style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem">Commands used across all servers. Auto-refreshes every 10s.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem">
+            <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:var(--green)">
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></div>
+              Live
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="loadDevActivity()">↻</button>
+          </div>
         </div>
-        <table>
-          <thead><tr><th>Time</th><th>Message</th></tr></thead>
-          <tbody id="devLogsBody"><tr><td colspan="2" class="loading">Loading...</td></tr></tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>User ID</th><th>Guild ID</th><th>Command</th></tr></thead>
+            <tbody id="devActivityBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:0.75rem">Note: Activity tracking requires <code style="font-family:'DM Mono',monospace;color:var(--accent)">ACTIVITY_SECRET</code> to be set in both <code style="font-family:'DM Mono',monospace;color:var(--accent)">.env</code> files and the bot must post to <code style="font-family:'DM Mono',monospace;color:var(--accent)">/api/dev/activity</code> on each command.</div>
       </div>
+
+      <!-- ALERTS TAB -->
+      <div class="dev-tab-content" id="devtab-alerts" style="display:none">
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="loadDevAlerts()">↻ Refresh All Alerts</button>
+        </div>
+
+        <!-- Crashed markets -->
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-head">
+            <h3>Crashed Stock Markets</h3>
+            <span style="font-size:0.72rem;color:var(--muted)">Stocks at or below $0.02</span>
+          </div>
+          <table>
+            <thead><tr><th>Guild ID</th><th>Ticker</th><th>Name</th><th>Price</th><th>Fix</th></tr></thead>
+            <tbody id="devCrashedBody"><tr><td colspan="5" class="loading">Click refresh to load</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Broken economies -->
+        <div class="table-wrap">
+          <div class="table-head">
+            <h3>Broken Economies</h3>
+            <span style="font-size:0.72rem;color:var(--muted)">One player holds >80% of all money</span>
+          </div>
+          <table>
+            <thead><tr><th>Guild ID</th><th>Top Player</th><th>Their Total</th><th>Share %</th><th>Circulation</th><th>Fix</th></tr></thead>
+            <tbody id="devBrokenBody"><tr><td colspan="6" class="loading">Click refresh to load</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SESSIONS TAB -->
+      <div class="dev-tab-content" id="devtab-sessions" style="display:none">
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Users active in the last 30 minutes.</div>
+        <div class="table-wrap">
+          <div class="table-head">
+            <h3>Active Sessions</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadDevSessions()">↻ Refresh</button>
+            <span id="devSessionCount" style="font-size:0.75rem;color:var(--muted)"></span>
+          </div>
+          <table>
+            <thead><tr><th>User</th><th>User ID</th><th>Current Server</th><th>Last Seen</th></tr></thead>
+            <tbody id="devSessionBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANNOUNCE TAB -->
+      <div class="dev-tab-content" id="devtab-announce" style="display:none">
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red);line-height:1.7">
+          <strong>Warning:</strong> This sends a message to the first text channel of every server the bot is in. Use with extreme caution.
+          You must type <code style="font-family:'DM Mono',monospace;background:rgba(239,68,68,0.1);padding:0.1rem 0.4rem;border-radius:4px">ANNOUNCE TO ALL SERVERS</code> exactly in the confirmation field.
+        </div>
+        <div class="action-card" style="max-width:560px">
+          <h3>Global Announcement</h3>
+          <p>Send an embed to every server the bot is in.</p>
+          <div class="input-row" style="margin-bottom:0.75rem">
+            <input type="text" id="announceTitle" placeholder="Embed title"/>
+          </div>
+          <textarea id="announceMsg" placeholder="Announcement message..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;resize:vertical;min-height:100px;margin-bottom:0.75rem"></textarea>
+          <div class="input-row" style="margin-bottom:0.75rem">
+            <input type="text" id="announceConfirm" placeholder="Type: ANNOUNCE TO ALL SERVERS" style="border-color:var(--red)"/>
+          </div>
+          <button class="btn btn-danger" onclick="devSendAnnouncement()">Send to All Servers</button>
+          <div id="announceResult" style="margin-top:0.75rem;font-size:0.82rem;display:none"></div>
+        </div>
+      </div>
+
+      <!-- TOOLS TAB -->
+      <div class="dev-tab-content" id="devtab-tools" style="display:none">
+        <div class="action-grid">
+          <div class="action-card">
+            <h3>User Balance Editor</h3>
+            <p>Look up and edit any user's balance across any guild.</p>
+            <div class="input-row">
+              <input type="text" id="devUserId" placeholder="User ID"/>
+              <button class="btn btn-outline btn-sm" onclick="loadDevUser()">Lookup</button>
+            </div>
+            <div id="devUserResults" style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted)"></div>
+          </div>
+          <div class="action-card">
+            <h3>Cross-Server Ban</h3>
+            <p>Ban a user from any guild by ID.</p>
+            <div class="input-row">
+              <input type="text" id="devBanGuild" placeholder="Guild ID"/>
+              <input type="text" id="devBanUser" placeholder="User ID"/>
+            </div>
+            <div class="input-row">
+              <input type="text" id="devBanReason" placeholder="Reason (optional)"/>
+            </div>
+            <button class="btn btn-danger" onclick="devBanUser()">Ban User</button>
+          </div>
+          <div class="action-card">
+            <h3>Force Stock Tick</h3>
+            <p>Force a stock market fluctuation on any guild.</p>
+            <div class="input-row">
+              <input type="text" id="devTickGuildId" placeholder="Guild ID"/>
+            </div>
+            <button class="btn btn-outline" onclick="devTickStocks()">Force Tick</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGS TAB -->
+      <div class="dev-tab-content" id="devtab-logs" style="display:none">
+        <div class="table-wrap">
+          <div class="table-head">
+            <h3>Error Logs</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadDevLogs()">↻ Refresh</button>
+            <span id="devLogsTs" style="font-size:0.72rem;color:var(--muted)"></span>
+          </div>
+          <table>
+            <thead><tr><th>Time</th><th>Message</th></tr></thead>
+            <tbody id="devLogsBody"><tr><td colspan="2" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 </div>
 
@@ -740,6 +864,7 @@ async function loadMe() {
       loadDevGuilds();
       loadDevGlobalStats();
       loadDevLogs();
+      loadDevNewPlayers();
     } else {
       document.getElementById('devSidebarLabel').style.display = 'none';
       document.getElementById('devSidebarLink').style.display = 'none';
@@ -1365,6 +1490,189 @@ async function loadDevLogs() {
       </tr>
     `).join('') : '<tr><td colspan="2" class="loading">No errors logged</td></tr>';
   } catch(e) {}
+}
+
+// ── Dev tab switcher ──────────────────────────────────────────────
+function switchDevTab(tab) {
+  document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dev-tab-content').forEach(t => { t.style.display = 'none'; t.classList.remove('active'); });
+  event.target.classList.add('active');
+  const el = document.getElementById('devtab-' + tab);
+  if (el) { el.style.display = 'block'; el.classList.add('active'); }
+  // Auto-load on tab switch
+  if (tab === 'activity') loadDevActivity();
+  if (tab === 'alerts') loadDevAlerts();
+  if (tab === 'sessions') loadDevSessions();
+  if (tab === 'logs') loadDevLogs();
+}
+
+// ── New players chart ─────────────────────────────────────────────
+async function loadDevNewPlayers() {
+  try {
+    const res = await fetch('/api/dev/new-players');
+    const data = await res.json();
+    const max = Math.max(...data.map(d => d.count), 1);
+    document.getElementById('devPlayerChart').innerHTML = data.map(d => {
+      const h = Math.max(4, Math.round((d.count / max) * 76));
+      const color = d.count > 0 ? 'var(--accent)' : 'var(--border)';
+      return `<div style="flex:1;height:${h}px;background:${color};border-radius:3px 3px 0 0;min-width:0" title="${d.date}: ${d.count} players"></div>`;
+    }).join('');
+    document.getElementById('devPlayerChartLabels').innerHTML = data.map((d, i) => {
+      const label = i % 2 === 0 ? d.date.substring(5) : '';
+      return `<div style="flex:1;font-size:0.6rem;color:var(--muted);text-align:center;min-width:0;overflow:hidden">${label}</div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+// ── Activity feed ─────────────────────────────────────────────────
+let activityAutoRefresh = null;
+async function loadDevActivity() {
+  try {
+    const res = await fetch('/api/dev/activity');
+    const data = await res.json();
+    document.getElementById('devActivityBody').innerHTML = data.length ? data.map(a => `
+      <tr>
+        <td class="mono" style="color:var(--muted);white-space:nowrap;font-size:0.72rem">${a.ts.replace('T',' ').substring(0,19)}</td>
+        <td class="mono">${a.userId}</td>
+        <td class="mono" style="color:var(--muted)">${a.guildId}</td>
+        <td><span class="tag tag-blue">${a.command}</span></td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" class="loading">No activity yet — requires ACTIVITY_SECRET setup</td></tr>';
+  } catch(e) {}
+  // Auto-refresh every 10s while on this tab
+  clearInterval(activityAutoRefresh);
+  activityAutoRefresh = setInterval(() => {
+    const tab = document.getElementById('devtab-activity');
+    if (tab && tab.style.display !== 'none') loadDevActivity();
+    else clearInterval(activityAutoRefresh);
+  }, 10000);
+}
+
+// ── Alerts ────────────────────────────────────────────────────────
+async function loadDevAlerts() {
+  document.getElementById('devCrashedBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+  document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+  try {
+    const [crashedRes, brokenRes] = await Promise.all([
+      fetch('/api/dev/crashed-markets'),
+      fetch('/api/dev/broken-economies')
+    ]);
+    const crashed = await crashedRes.json();
+    const broken = await brokenRes.json();
+
+    // Crashed markets
+    if (!crashed.length) {
+      document.getElementById('devCrashedBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--green)">✓ No crashed markets</td></tr>';
+    } else {
+      document.getElementById('devCrashedBody').innerHTML = crashed.flatMap(g =>
+        g.crashedStocks.map(s => `
+          <tr>
+            <td class="mono" style="color:var(--muted)">${g.guildId}</td>
+            <td><span class="tag tag-red">${s.ticker}</span></td>
+            <td style="font-size:0.82rem">${s.name}</td>
+            <td class="mono" style="color:var(--red)">$${s.price.toFixed(2)}</td>
+            <td>
+              <button class="btn btn-fill btn-sm" onclick="devFixCrash('${g.guildId}')">Seed Market</button>
+            </td>
+          </tr>
+        `)
+      ).join('');
+    }
+
+    // Broken economies
+    if (!broken.length) {
+      document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--green)">✓ No broken economies</td></tr>';
+    } else {
+      document.getElementById('devBrokenBody').innerHTML = broken.map(b => `
+        <tr>
+          <td class="mono" style="color:var(--muted)">${b.guildId}</td>
+          <td class="mono">${b.topUserId}</td>
+          <td class="mono" style="color:var(--accent)">$${Number(b.topTotal).toLocaleString()}</td>
+          <td><span class="tag tag-red">${b.sharePercent}%</span></td>
+          <td class="mono">$${Number(b.totalCirculation).toLocaleString()}</td>
+          <td style="display:flex;gap:0.3rem;flex-wrap:wrap">
+            <button class="btn btn-danger btn-sm" onclick="devResetUser('${b.guildId}','${b.topUserId}')">Reset User</button>
+            <button class="btn btn-outline btn-sm" onclick="inspectGuild('${b.guildId}');switchDevTab('overview')">Inspect</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch(e) {
+    document.getElementById('devCrashedBody').innerHTML = '<tr><td colspan="5" class="loading">Failed to load</td></tr>';
+    document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" class="loading">Failed to load</td></tr>';
+  }
+}
+
+async function devFixCrash(guildId) {
+  if (!confirm(`Seed market for guild ${guildId}?`)) return;
+  const res = await fetch(`/api/dev/guild/${guildId}/seed`, { method: 'POST' });
+  const d = await res.json();
+  d.success ? (toast('✅ Market seeded'), loadDevAlerts()) : toast('❌ ' + d.error, 'error');
+}
+
+async function devResetUser(guildId, userId) {
+  if (!confirm(`Reset balance of ${userId} in ${guildId} to $0?`)) return;
+  const res = await fetch(`/api/dev/user/${userId}/edit`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ guildId, balance: 0, bank: 0 })
+  });
+  const d = await res.json();
+  d.success ? (toast('✅ Balance reset'), loadDevAlerts()) : toast('❌ ' + d.error, 'error');
+}
+
+// ── Sessions ──────────────────────────────────────────────────────
+async function loadDevSessions() {
+  try {
+    const res = await fetch('/api/dev/sessions');
+    const sessions = await res.json();
+    document.getElementById('devSessionCount').textContent = sessions.length + ' active';
+    document.getElementById('devSessionBody').innerHTML = sessions.length ? sessions.map(s => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <img src="${s.avatar}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border)"/>
+            <span style="font-size:0.85rem;font-weight:500">${s.username}</span>
+          </div>
+        </td>
+        <td class="mono" style="color:var(--muted)">${s.userId}</td>
+        <td style="font-size:0.82rem">${s.guild}</td>
+        <td class="mono" style="font-size:0.72rem;color:var(--muted)">${s.lastSeen.replace('T',' ').substring(0,19)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--muted)">No active sessions</td></tr>';
+  } catch(e) {}
+}
+
+// ── Announcement ──────────────────────────────────────────────────
+async function devSendAnnouncement() {
+  const title = document.getElementById('announceTitle').value.trim();
+  const message = document.getElementById('announceMsg').value.trim();
+  const confirmPhrase = document.getElementById('announceConfirm').value.trim();
+  if (!title || !message) return toast('Enter title and message', 'error');
+  if (!confirm(`Send this announcement to ALL servers? This cannot be undone.`)) return;
+  const resultEl = document.getElementById('announceResult');
+  resultEl.style.display = 'block';
+  resultEl.style.color = 'var(--muted)';
+  resultEl.textContent = 'Sending...';
+  try {
+    const res = await fetch('/api/dev/announce', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ title, message, confirmPhrase })
+    });
+    const d = await res.json();
+    if (d.success) {
+      resultEl.style.color = 'var(--green)';
+      resultEl.textContent = `✅ Sent to ${d.sent} server${d.sent !== 1 ? 's' : ''}. Failed: ${d.failed}.`;
+      document.getElementById('announceTitle').value = '';
+      document.getElementById('announceMsg').value = '';
+      document.getElementById('announceConfirm').value = '';
+    } else {
+      resultEl.style.color = 'var(--red)';
+      resultEl.textContent = '❌ ' + d.error;
+    }
+  } catch(e) {
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = '❌ Failed: ' + e.message;
+  }
 }
 </script>
 </body>
