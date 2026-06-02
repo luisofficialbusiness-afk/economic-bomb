@@ -425,7 +425,7 @@ input::placeholder { color: var(--muted); }
     <div class="section" id="sec-channels">
       <div class="sec-label">Admin</div>
       <div class="sec-title">Command Channels</div>
-      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:500px">Choose which channels bot commands can be used in. Toggle off to block commands in that channel.</p>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:500px">Toggle ON the channels where bot commands are allowed. If no channels are toggled, commands work everywhere.</p>
       <div class="table-wrap">
         <div class="table-head">
           <h3>Text Channels</h3>
@@ -1115,7 +1115,7 @@ async function loadChannels() {
           <span class="tag tag-blue" style="font-size:0.65rem;margin-left:0.25rem">${ch.type}</span>
         </div>
         <label class="toggle">
-          <input type="checkbox" data-id="${ch.id}" ${allowedChannels.has(ch.id) || allowedChannels.size === 0 ? 'checked' : ''} onchange="markUnsaved()"/>
+          <input type="checkbox" data-id="${ch.id}" ${allowedChannels.has(ch.id) ? 'checked' : ''} onchange="markUnsaved()"/>
           <span class="toggle-slider"></span>
         </label>
       </div>
