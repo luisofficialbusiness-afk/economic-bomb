@@ -409,14 +409,16 @@ input::placeholder { color: var(--muted); }
     <div class="section" id="sec-modules">
       <div class="sec-label">Admin</div>
       <div class="sec-title">Modules</div>
-      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Toggle bot features on or off for your server. Disabled commands will return an error when used. Save after making changes.</p>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Toggle categories or individual commands on/off. Disabling a category disables all commands in it. You can also fine-tune individual commands within an enabled category.</p>
       <div class="table-wrap">
         <div class="table-head">
           <h3>Features</h3>
           <span id="modulesSaved" style="color:var(--green);font-size:0.78rem;display:none">✓ Saved</span>
+          <button class="btn btn-outline btn-sm" onclick="modulesEnableAll()">Enable All</button>
+          <button class="btn btn-danger btn-sm" onclick="modulesDisableAll()">Disable All</button>
         </div>
-        <div style="padding:1.25rem 1.5rem">
-          <div class="channel-list" id="moduleList"><div class="loading">Loading...</div></div>
+        <div style="padding:1.25rem 1.5rem" id="moduleList"><div class="loading">Loading...</div></div>
+        <div style="padding:0 1.5rem 1.25rem">
           <button class="btn btn-fill" onclick="saveModules()">Save Changes</button>
         </div>
       </div>
@@ -518,12 +520,10 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <!-- DEVELOPER DEBUG PANEL -->
     <div class="section" id="sec-devpanel">
       <div class="sec-label">Developer</div>
       <div class="sec-title">Dev Console</div>
 
-      <!-- Dev tabs -->
       <div style="display:flex;gap:0.25rem;margin-bottom:2rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.3rem;width:fit-content">
         <button class="dev-tab active" onclick="switchDevTab('overview')">Overview</button>
         <button class="dev-tab" onclick="switchDevTab('activity')">Live Activity</button>
@@ -535,7 +535,6 @@ input::placeholder { color: var(--muted); }
         <button class="dev-tab" onclick="switchDevTab('banned')">Banned Servers</button>
       </div>
 
-      <!-- OVERVIEW TAB -->
       <div class="dev-tab-content active" id="devtab-overview">
         <div class="stat-grid" style="margin-bottom:1.5rem">
           <div class="stat-card"><span class="stat-n blue" id="devGuildCount">—</span><div class="stat-l">Bot Servers</div></div>
@@ -546,7 +545,6 @@ input::placeholder { color: var(--muted); }
           <div class="stat-card"><span class="stat-n red" id="devLogCount">0</span><div class="stat-l">Error Logs</div></div>
         </div>
 
-        <!-- New players chart -->
         <div class="table-wrap" style="margin-bottom:1.5rem">
           <div class="table-head"><h3>New Players — Last 14 Days</h3><button class="btn btn-outline btn-sm" onclick="loadDevNewPlayers()">↻</button></div>
           <div style="padding:1.5rem">
@@ -555,7 +553,6 @@ input::placeholder { color: var(--muted); }
           </div>
         </div>
 
-        <!-- All guilds -->
         <div class="table-wrap">
           <div class="table-head">
             <h3>All Bot Servers</h3>
@@ -571,7 +568,6 @@ input::placeholder { color: var(--muted); }
           </table>
         </div>
 
-        <!-- Guild Inspector -->
         <div class="table-wrap" style="margin-top:1rem" id="devGuildInspector">
           <div class="table-head">
             <h3>Guild Inspector</h3>
@@ -595,7 +591,6 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- LIVE ACTIVITY TAB -->
       <div class="dev-tab-content" id="devtab-activity" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
           <div>
@@ -619,13 +614,12 @@ input::placeholder { color: var(--muted); }
         <div style="font-size:0.78rem;color:var(--muted);margin-top:0.75rem">Note: Activity tracking requires <code style="font-family:'DM Mono',monospace;color:var(--accent)">ACTIVITY_SECRET</code> to be set in both <code style="font-family:'DM Mono',monospace;color:var(--accent)">.env</code> files and the bot must post to <code style="font-family:'DM Mono',monospace;color:var(--accent)">/api/dev/activity</code> on each command.</div>
       </div>
 
-      <!-- ALERTS TAB -->
       <div class="dev-tab-content" id="devtab-alerts" style="display:none">
         <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="loadDevAlerts()">↻ Refresh All Alerts</button>
         </div>
 
-        <!-- Crashed markets -->
+
         <div class="table-wrap" style="margin-bottom:1.5rem">
           <div class="table-head">
             <h3>Crashed Stock Markets</h3>
@@ -637,7 +631,7 @@ input::placeholder { color: var(--muted); }
           </table>
         </div>
 
-        <!-- Broken economies -->
+
         <div class="table-wrap">
           <div class="table-head">
             <h3>Broken Economies</h3>
@@ -650,7 +644,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- SESSIONS TAB -->
+
       <div class="dev-tab-content" id="devtab-sessions" style="display:none">
         <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Users active in the last 30 minutes.</div>
         <div class="table-wrap">
@@ -666,7 +660,6 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- ANNOUNCE TAB -->
       <div class="dev-tab-content" id="devtab-announce" style="display:none">
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red);line-height:1.7">
           <strong>Warning:</strong> This sends a message to the first text channel of every server the bot is in. Use with extreme caution.
@@ -687,7 +680,6 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- TOOLS TAB -->
       <div class="dev-tab-content" id="devtab-tools" style="display:none">
         <div class="action-grid">
           <div class="action-card">
@@ -722,7 +714,6 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- LOGS TAB -->
       <div class="dev-tab-content" id="devtab-logs" style="display:none">
         <div class="table-wrap">
           <div class="table-head">
@@ -737,7 +728,6 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <!-- BANNED SERVERS TAB -->
       <div class="dev-tab-content" id="devtab-banned" style="display:none">
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red)">
           Banned servers cannot use any Economic Bomb commands. All command attempts from banned servers show a ban message.
@@ -875,7 +865,6 @@ async function loadMe() {
       iconEl.textContent = (data.guild?.name || '?').charAt(0);
     }
 
-    // Show dev panel if on developer guild — hide all other sections
     if (data.guild?.id === 'developer') {
       document.querySelectorAll('.sb-label:not(#devSidebarLabel), .sb-link:not(#devSidebarLink)').forEach(el => el.style.display = 'none');
       document.getElementById('devSidebarLabel').style.display = '';
@@ -913,7 +902,6 @@ function loadSection(sec) {
   if (sec === 'dev-banned') { switchDevTab('banned'); devLoadBannedServers(); }
 }
 
-// Auto-refresh every 60s
 setInterval(() => {
   const active = document.querySelector('.section.active');
   if (active) loadSection(active.id.replace('sec-', ''));
@@ -1159,7 +1147,6 @@ async function loadAnticheat() {
 }
 
 async function quickResetBalance(userId) {
-  // Wipe both wallet and bank
   const [r1, r2] = await Promise.all([
     fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) }),
     fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) })
@@ -1225,29 +1212,62 @@ async function unbanUser(userId) {
   d.success ? (toast('✅ User unbanned'), loadBans()) : toast('❌ Failed', 'error');
 }
 
-const MODULE_LABELS = {
-  work: '💼 Work', rob: '🦹 Rob', coinflip: '🪙 Coinflip', dice: '🎲 Dice',
-  slots: '🎰 Slots', duel: '⚔️ Duel', stocks: '📈 Stocks', slave: '⛓️ Slave System',
-  givemoney: '💸 Give Money', deposit: '🏦 Deposit', withdraw: '💵 Withdraw', leaderboard: '🏆 Leaderboard'
+const MODULE_CATEGORIES = {
+  economy:     { label: 'Economy', icon: '$', cmds: { balance: 'Balance', daily: 'Daily', weekly: 'Weekly', givemoney: 'Give Money', deposit: 'Deposit', withdraw: 'Withdraw' } },
+  gambling:    { label: 'Gambling', icon: 'G', cmds: { coinflip: 'Coinflip', dice: 'Dice', slots: 'Slots', duel: 'Duel', rob: 'Rob' } },
+  stocks:      { label: 'Stocks', icon: 'S', cmds: { stocks: 'View Stocks', buystock: 'Buy Stock', sellstock: 'Sell Stock', portfolio: 'Portfolio', stockhistory: 'Stock History' } },
+  slave:       { label: 'Slave System', icon: 'L', cmds: { buy: 'Buy Player', outbid: 'Outbid', slave: 'Slave Status', slavepanel: 'Slave Panel', slavelist: 'Slave List' } },
+  leaderboard: { label: 'Leaderboards', icon: '#', cmds: { leaderboard: 'Cash Leaderboard', bankleaderboard: 'Bank Leaderboard', gleaderboard: 'Global Leaderboard' } },
+  work:        { label: 'Work', icon: 'W', cmds: { work: 'Work' } },
 };
 
 async function loadModules() {
   try {
     const res = await fetch('/api/modules');
     const mods = await res.json();
-    document.getElementById('moduleList').innerHTML = Object.entries(MODULE_LABELS).map(([key, label]) => `
-      <div class="channel-row">
-        <div class="channel-name">${label}</div>
-        <label class="toggle">
-          <input type="checkbox" data-mod="${key}" ${mods[key] !== false ? 'checked' : ''} onchange="markModulesUnsaved()"/>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    `).join('');
+    const list = document.getElementById('moduleList');
+    list.innerHTML = Object.entries(MODULE_CATEGORIES).map(([catKey, cat]) => {
+      const catEnabled = mods[catKey] !== false;
+      const cmdRows = Object.entries(cat.cmds).map(([cmdKey, cmdLabel]) => {
+        const cmdEnabled = mods[cmdKey] !== false;
+        return `
+          <div class="channel-row" style="padding-left:2rem;background:rgba(0,0,0,0.15);border-radius:0">
+            <div class="channel-name" style="font-size:0.82rem;color:var(--muted)">${cmdLabel}</div>
+            <label class="toggle">
+              <input type="checkbox" data-mod="${cmdKey}" ${cmdEnabled ? 'checked' : ''} onchange="markModulesUnsaved()"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>`;
+      }).join('');
+      return `
+        <div style="margin-bottom:0.75rem;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div class="channel-row" style="background:var(--surface);border-radius:0;border-bottom:1px solid var(--border)">
+            <div class="channel-name" style="font-weight:600;font-size:0.9rem">
+              <span style="width:20px;height:20px;border-radius:5px;background:var(--accent-dim);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;margin-right:0.25rem">${cat.icon}</span>
+              ${cat.label}
+            </div>
+            <label class="toggle">
+              <input type="checkbox" data-mod="${catKey}" ${catEnabled ? 'checked' : ''} onchange="markModulesUnsaved()"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          ${cmdRows}
+        </div>`;
+    }).join('');
   } catch(e) {}
 }
 
 function markModulesUnsaved() { document.getElementById('modulesSaved').style.display = 'none'; }
+
+function modulesEnableAll() {
+  document.querySelectorAll('#moduleList input[type=checkbox]').forEach(i => i.checked = true);
+  markModulesUnsaved();
+}
+
+function modulesDisableAll() {
+  document.querySelectorAll('#moduleList input[type=checkbox]').forEach(i => i.checked = false);
+  markModulesUnsaved();
+}
 
 async function saveModules() {
   const inputs = document.querySelectorAll('#moduleList input[type=checkbox]');
@@ -1256,8 +1276,8 @@ async function saveModules() {
   try {
     await fetch('/api/modules', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(mods) });
     document.getElementById('modulesSaved').style.display = 'inline';
-    toast('✅ Modules saved!');
-  } catch(e) { toast('❌ Failed to save', 'error'); }
+    toast('Modules saved!');
+  } catch(e) { toast('Failed to save', 'error'); }
 }
 
 async function seedMarket() {
@@ -1339,14 +1359,11 @@ async function resetCooldowns() {
 }
 
 loadMe().then(() => {
-  // Only load normal stats if not in dev mode
   if (currentGuildId !== 'developer') {
     loadStats();
     loadHealth();
   }
 });
-
-// ── DEVELOPER PANEL FUNCTIONS ─────────────────────────────────────────────
 
 async function loadDevGlobalStats() {
   try {
@@ -1445,7 +1462,6 @@ async function loadDevGuildStats() {
       <div style="font-size:0.8rem;color:var(--muted)">Allowed channels: <span style="font-family:'DM Mono',monospace">${d.allowedChannels.length ? d.allowedChannels.length + ' set' : 'all'}</span></div>
     `;
     document.getElementById('devGuildActions').style.display = 'block';
-      // Check if server is banned and toggle ban/unban buttons
       try {
         const bannedRes = await fetch('/api/dev/banned-servers');
         const bannedList = await bannedRes.json();
@@ -1529,21 +1545,18 @@ async function loadDevLogs() {
   } catch(e) {}
 }
 
-// ── Dev tab switcher ──────────────────────────────────────────────
 function switchDevTab(tab) {
   document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.dev-tab-content').forEach(t => { t.style.display = 'none'; t.classList.remove('active'); });
   event.target.classList.add('active');
   const el = document.getElementById('devtab-' + tab);
   if (el) { el.style.display = 'block'; el.classList.add('active'); }
-  // Auto-load on tab switch
   if (tab === 'activity') loadDevActivity();
   if (tab === 'alerts') loadDevAlerts();
   if (tab === 'sessions') loadDevSessions();
   if (tab === 'logs') loadDevLogs();
 }
 
-// ── New players chart ─────────────────────────────────────────────
 async function loadDevNewPlayers() {
   try {
     const res = await fetch('/api/dev/new-players');
@@ -1561,7 +1574,6 @@ async function loadDevNewPlayers() {
   } catch(e) {}
 }
 
-// ── Activity feed ─────────────────────────────────────────────────
 let activityAutoRefresh = null;
 async function loadDevActivity() {
   try {
@@ -1576,7 +1588,7 @@ async function loadDevActivity() {
       </tr>
     `).join('') : '<tr><td colspan="4" class="loading">No activity yet — requires ACTIVITY_SECRET setup</td></tr>';
   } catch(e) {}
-  // Auto-refresh every 10s while on this tab
+
   clearInterval(activityAutoRefresh);
   activityAutoRefresh = setInterval(() => {
     const tab = document.getElementById('devtab-activity');
@@ -1585,7 +1597,6 @@ async function loadDevActivity() {
   }, 10000);
 }
 
-// ── Alerts ────────────────────────────────────────────────────────
 async function loadDevAlerts() {
   document.getElementById('devCrashedBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
   document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
@@ -1616,7 +1627,7 @@ async function loadDevAlerts() {
       ).join('');
     }
 
-    // Broken economies
+
     if (!broken.length) {
       document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--green)">✓ No broken economies</td></tr>';
     } else {
@@ -1657,7 +1668,6 @@ async function devResetUser(guildId, userId) {
   d.success ? (toast('✅ Balance reset'), loadDevAlerts()) : toast('❌ ' + d.error, 'error');
 }
 
-// ── Sessions ──────────────────────────────────────────────────────
 async function loadDevSessions() {
   try {
     const res = await fetch('/api/dev/sessions');
@@ -1679,7 +1689,6 @@ async function loadDevSessions() {
   } catch(e) {}
 }
 
-// ── Announcement ──────────────────────────────────────────────────
 async function devSendAnnouncement() {
   const title = document.getElementById('announceTitle').value.trim();
   const message = document.getElementById('announceMsg').value.trim();
@@ -1712,7 +1721,7 @@ async function devSendAnnouncement() {
   }
 }
 
-// ── DEV: BAN/UNBAN SERVER ─────────────────────────────────────────────────────
+
 let currentInspectedGuildId = null;
 
 async function devBanServer() {

@@ -536,9 +536,16 @@ app.get('/api/modules', requireAuth, async (req, res) => {
         const guildId = req.session.guild.id;
         const config = await Config.findOne({ guildId });
         const defaults = {
-            work: true, rob: true, coinflip: true, dice: true, slots: true,
-            duel: true, stocks: true, slave: true, givemoney: true,
-            deposit: true, withdraw: true, leaderboard: true
+            // Categories
+            economy: true, gambling: true, stocks: true, slave: true,
+            leaderboard: true, work: true,
+            // Individual commands
+            balance: true, daily: true, weekly: true, givemoney: true,
+            deposit: true, withdraw: true, rob: true, coinflip: true,
+            dice: true, slots: true, duel: true,
+            buystock: true, sellstock: true, portfolio: true, stockhistory: true,
+            buy: true, outbid: true, slave: true, slavepanel: true, slavelist: true,
+            leaderboard: true, bankleaderboard: true, gleaderboard: true
         };
         res.json({ ...defaults, ...(config?.modules || {}) });
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
