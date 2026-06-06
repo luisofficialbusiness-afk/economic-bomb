@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>API - Economic Bomb</title>
+<link rel="icon" type="image/png" href="economicbomb.webp">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0e0e10;
+  --surface: #18181b;
+  --border: #27272a;
+  --text: #fafafa;
+  --muted: #71717a;
+  --subtle: #3f3f46;
+  --accent: #eab308;
+  --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444;
+  --green: #22c55e;
+  --blue: #60a5fa;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(14,14,16,0.8);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link.active { color: var(--text); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.layout { display: flex; padding-top: 60px; min-height: 100vh; }
+
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  position: sticky; top: 60px;
+  height: calc(100vh - 60px); overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 1.75rem 0;
+}
+.sb-section { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0 1.25rem; margin: 1.25rem 0 0.4rem; }
+.sb-section:first-child { margin-top: 0; }
+.sb-link { display: block; padding: 0.32rem 1.25rem; font-size: 0.83rem; color: var(--muted); border-left: 2px solid transparent; transition: color 0.15s, background 0.15s, border-color 0.15s; }
+.sb-link:hover { color: var(--text); background: rgba(255,255,255,0.025); }
+.sb-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+
+.content { flex: 1; min-width: 0; padding: 3rem 3.5rem 6rem; max-width: 820px; }
+
+.pg-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+.pg-title { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+.pg-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; line-height: 1.75; max-width: 580px; }
+
+.meta-strip {
+  display: flex; gap: 0; margin-bottom: 2.5rem;
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.meta-cell { flex: 1; padding: 0.9rem 1.25rem; border-right: 1px solid var(--border); }
+.meta-cell:last-child { border-right: none; }
+.meta-l { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.25rem; }
+.meta-v { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text); }
+.meta-v.green { color: var(--green); }
+.meta-v.yellow { color: var(--accent); }
+
+.section { margin-bottom: 3rem; scroll-margin-top: 80px; }
+.section-title { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
+
+.notice {
+  background: rgba(234,179,8,0.07); border: 1px solid rgba(234,179,8,0.18);
+  border-radius: 8px; padding: 1rem 1.25rem;
+  font-size: 0.85rem; line-height: 1.75; color: var(--text);
+  margin-bottom: 1.5rem;
+}
+.notice strong { color: var(--accent); }
+
+.ep {
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden; margin-bottom: 1rem; background: var(--surface);
+}
+.ep-head {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1.25rem; cursor: pointer; user-select: none;
+  transition: background 0.15s;
+}
+.ep-head:hover { background: rgba(255,255,255,0.02); }
+.badge {
+  font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 600;
+  padding: 0.18rem 0.5rem; border-radius: 4px; flex-shrink: 0;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge-get { background: rgba(96,165,250,0.14); color: var(--blue); }
+.ep-path { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--text); flex: 1; }
+.ep-summary { font-size: 0.78rem; color: var(--muted); }
+.ep-arrow { color: var(--muted); font-size: 0.7rem; transition: transform 0.18s; }
+.ep-arrow.open { transform: rotate(180deg); }
+
+.ep-body { display: none; padding: 1.25rem; border-top: 1px solid var(--border); }
+.ep-body.open { display: block; }
+
+.field-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; margin-top: 1.25rem; }
+.field-label:first-child { margin-top: 0; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); text-align: left; padding: 0.35rem 0.75rem; border-bottom: 1px solid var(--border); }
+td { padding: 0.55rem 0.75rem; font-size: 0.82rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.p-name { font-family: 'DM Mono', monospace; color: var(--accent); }
+.p-type { font-family: 'DM Mono', monospace; color: var(--blue); font-size: 0.76rem; }
+.p-req { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.p-req.y { color: var(--red); }
+.p-req.n { color: var(--muted); }
+
+pre {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 1rem 1.25rem; overflow-x: auto;
+  font-family: 'DM Mono', monospace; font-size: 0.78rem; line-height: 1.7;
+}
+.k { color: var(--blue); }
+.s { color: var(--green); }
+.n { color: var(--accent); }
+.b { color: var(--red); }
+.c { color: var(--muted); font-style: italic; }
+
+.try-section { margin-top: 1.25rem; }
+.try-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.try-input {
+  flex: 1; min-width: 200px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem;
+  padding: 0.5rem 0.75rem; outline: none; transition: border-color 0.15s;
+}
+.try-input:focus { border-color: var(--subtle); }
+.try-input::placeholder { color: var(--muted); }
+.try-btn {
+  padding: 0.5rem 1.1rem; border-radius: 6px; border: none; cursor: pointer;
+  background: var(--accent); color: #000; font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 600; transition: opacity 0.15s; flex-shrink: 0;
+}
+.try-btn:hover { opacity: 0.85; }
+.try-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.try-result {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 1rem 1.25rem; font-family: 'DM Mono', monospace; font-size: 0.76rem;
+  line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+  max-height: 320px; overflow-y: auto; color: var(--text);
+  display: none;
+}
+.try-result.show { display: block; }
+.try-status { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem; font-family: 'DM Mono', monospace; }
+.try-status.ok { color: var(--green); }
+.try-status.err { color: var(--red); }
+
+footer {
+  border-top: 1px solid var(--border); padding: 2rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.footer-logo { font-size: 0.88rem; font-weight: 600; color: var(--muted); }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.82rem; color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { font-size: 0.78rem; color: var(--subtle); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" style="height:24px;width:24px;object-fit:contain;border-radius:4px;margin-right:0.1rem;">
+    Economic<span class="logo-dot">.</span>Bomb
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Docs</a>
+    <a href="api-docs.html" class="nav-link active">API</a>
+    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+    <a href="status.html" class="nav-link">Status</a>
+    <a href="login.html" class="nav-link">Dashboard</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sb-section">Overview</div>
+    <a href="#intro" class="sb-link">Introduction</a>
+    <a href="#rate-limiting" class="sb-link">Rate Limiting</a>
+    <a href="#response-format" class="sb-link">Response Format</a>
+    <div class="sb-section">Endpoints</div>
+    <a href="#ep-info" class="sb-link">API Info</a>
+    <a href="#ep-player" class="sb-link">Player Stats</a>
+    <a href="#ep-portfolio" class="sb-link">Player Portfolio</a>
+    <a href="#ep-leaderboard" class="sb-link">Server Leaderboard</a>
+    <a href="#ep-global" class="sb-link">Global Leaderboard</a>
+    <a href="#ep-stats" class="sb-link">Network Stats</a>
+    <div class="sb-section">Examples</div>
+    <a href="#ex-js" class="sb-link">JavaScript</a>
+    <a href="#ex-python" class="sb-link">Python</a>
+    <a href="#ex-curl" class="sb-link">cURL</a>
+  </aside>
+
+  <main class="content">
+
+    <div id="intro" class="section">
+      <div class="pg-label">Developer</div>
+      <div class="pg-title">Economic Bomb API</div>
+      <div class="pg-sub">A fully public REST API for Economic Bomb data. No key required. Build stat trackers, server dashboards, leaderboard bots, or anything else.</div>
+
+      <div class="meta-strip">
+        <div class="meta-cell"><div class="meta-l">Base URL</div><div class="meta-v">economicbomb.nrglearning.xyz/api/v1</div></div>
+        <div class="meta-cell"><div class="meta-l">Version</div><div class="meta-v yellow">v1.0.0</div></div>
+        <div class="meta-cell"><div class="meta-l">Auth</div><div class="meta-v green">None</div></div>
+        <div class="meta-cell"><div class="meta-l">Rate Limit</div><div class="meta-v">30 / min</div></div>
+      </div>
+    </div>
+
+    <div id="rate-limiting" class="section">
+      <div class="section-title">Rate Limiting</div>
+      <div class="notice">
+        All endpoints are limited to <strong>30 requests per minute per IP address</strong>. Exceeding the limit returns a <strong>429</strong> response. Every response includes rate limit headers.<br><br>
+        <strong>X-RateLimit-Limit</strong> - max requests per window<br>
+        <strong>X-RateLimit-Remaining</strong> - requests left this window<br>
+        <strong>X-RateLimit-Reset</strong> - Unix ms timestamp when the window resets
+      </div>
+    </div>
+
+    <div id="response-format" class="section">
+      <div class="section-title">Response Format</div>
+      <div class="field-label">Success</div>
+      <pre>{
+  <span class="k">"ok"</span>: <span class="b">true</span>,
+  <span class="k">"data"</span>: { <span class="c">... your data here</span> },
+  <span class="k">"timestamp"</span>: <span class="s">"2026-06-15T00:00:00.000Z"</span>
+}</pre>
+      <div class="field-label" style="margin-top:1rem;">Error</div>
+      <pre>{
+  <span class="k">"ok"</span>: <span class="b">false</span>,
+  <span class="k">"error"</span>: <span class="s">"Description of what went wrong."</span>,
+  <span class="k">"timestamp"</span>: <span class="s">"2026-06-15T00:00:00.000Z"</span>
+}</pre>
+    </div>
+
+    <div id="ep-info" class="section">
+      <div class="section-title">API Info</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1</span>
+          <span class="ep-summary">Returns API metadata and available endpoints</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"name"</span>: <span class="s">"Economic Bomb API"</span>,
+  <span class="k">"version"</span>: <span class="s">"1.0.0"</span>,
+  <span class="k">"rateLimit"</span>: <span class="s">"30 requests per minute per IP"</span>,
+  <span class="k">"endpoints"</span>: [<span class="s">"GET /api/v1/player/:userId"</span>, <span class="s">"..."</span>]
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <button class="try-btn" onclick="tryRequest('/api/v1', 'res-info')">Send</button>
+            </div>
+            <div class="try-status" id="status-info"></div>
+            <div class="try-result" id="res-info"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ep-player" class="section">
+      <div class="section-title">Player Stats</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1/player/:userId</span>
+          <span class="ep-summary">Returns a player's economy stats</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Path Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">userId</td><td class="p-type">string</td><td class="p-req y">Yes</td><td>Discord user snowflake ID</td></tr>
+          </table>
+          <div class="field-label">Query Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">guildId</td><td class="p-type">string</td><td class="p-req n">No</td><td>Filter to a specific server. Omit to return all servers the player is in.</td></tr>
+          </table>
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"userId"</span>: <span class="s">"123456789012345678"</span>,
+  <span class="k">"guildId"</span>: <span class="s">"987654321098765432"</span>,
+  <span class="k">"balance"</span>: <span class="n">125000</span>,
+  <span class="k">"bank"</span>: <span class="n">800000</span>,
+  <span class="k">"netWorth"</span>: <span class="n">925000</span>,
+  <span class="k">"prestige"</span>: <span class="n">2</span>,
+  <span class="k">"prestigeBadge"</span>: <span class="s">"★★"</span>,
+  <span class="k">"dailyStreak"</span>: <span class="n">14</span>,
+  <span class="k">"isEnslaved"</span>: <span class="b">false</span>,
+  <span class="k">"slavesOwned"</span>: <span class="n">3</span>
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <input class="try-input" id="in-player-id" placeholder="userId (Discord snowflake)">
+              <input class="try-input" id="in-player-guild" placeholder="guildId (optional)">
+              <button class="try-btn" onclick="tryPlayer()">Send</button>
+            </div>
+            <div class="try-status" id="status-player"></div>
+            <div class="try-result" id="res-player"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ep-portfolio" class="section">
+      <div class="section-title">Player Portfolio</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1/player/:userId/portfolio</span>
+          <span class="ep-summary">Returns a player's stock portfolio with live valuations</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Path Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">userId</td><td class="p-type">string</td><td class="p-req y">Yes</td><td>Discord user snowflake ID</td></tr>
+          </table>
+          <div class="field-label">Query Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">guildId</td><td class="p-type">string</td><td class="p-req y">Yes</td><td>Server ID - portfolios are per server</td></tr>
+          </table>
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"userId"</span>: <span class="s">"123456789012345678"</span>,
+  <span class="k">"guildId"</span>: <span class="s">"987654321098765432"</span>,
+  <span class="k">"totalValue"</span>: <span class="n">245000</span>,
+  <span class="k">"holdings"</span>: [
+    {
+      <span class="k">"ticker"</span>: <span class="s">"VOID"</span>,
+      <span class="k">"shares"</span>: <span class="n">50</span>,
+      <span class="k">"avgBuyPrice"</span>: <span class="n">4200</span>,
+      <span class="k">"currentPrice"</span>: <span class="n">5100</span>,
+      <span class="k">"value"</span>: <span class="n">255000</span>,
+      <span class="k">"gainLoss"</span>: <span class="n">45000</span>,
+      <span class="k">"gainLossPct"</span>: <span class="n">21.43</span>
+    }
+  ]
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <input class="try-input" id="in-port-id" placeholder="userId">
+              <input class="try-input" id="in-port-guild" placeholder="guildId (required)">
+              <button class="try-btn" onclick="tryPortfolio()">Send</button>
+            </div>
+            <div class="try-status" id="status-port"></div>
+            <div class="try-result" id="res-port"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ep-leaderboard" class="section">
+      <div class="section-title">Server Leaderboard</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1/leaderboard</span>
+          <span class="ep-summary">Returns top players in a specific server</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Query Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">guildId</td><td class="p-type">string</td><td class="p-req y">Yes</td><td>Discord server ID</td></tr>
+            <tr><td class="p-name">sort</td><td class="p-type">string</td><td class="p-req n">No</td><td><code>networth</code> (default), <code>wallet</code>, <code>bank</code>, <code>prestige</code></td></tr>
+            <tr><td class="p-name">limit</td><td class="p-type">number</td><td class="p-req n">No</td><td>1-100, default 25</td></tr>
+          </table>
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"guildId"</span>: <span class="s">"987654321098765432"</span>,
+  <span class="k">"sort"</span>: <span class="s">"networth"</span>,
+  <span class="k">"count"</span>: <span class="n">25</span>,
+  <span class="k">"players"</span>: [
+    {
+      <span class="k">"rank"</span>: <span class="n">1</span>,
+      <span class="k">"userId"</span>: <span class="s">"123456789012345678"</span>,
+      <span class="k">"balance"</span>: <span class="n">500000</span>,
+      <span class="k">"bank"</span>: <span class="n">2000000</span>,
+      <span class="k">"netWorth"</span>: <span class="n">2500000</span>,
+      <span class="k">"prestige"</span>: <span class="n">3</span>,
+      <span class="k">"prestigeBadge"</span>: <span class="s">"★★★"</span>,
+      <span class="k">"dailyStreak"</span>: <span class="n">30</span>,
+      <span class="k">"slavesOwned"</span>: <span class="n">5</span>,
+      <span class="k">"isEnslaved"</span>: <span class="b">false</span>
+    }
+  ]
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <input class="try-input" id="in-lb-guild" placeholder="guildId">
+              <input class="try-input" id="in-lb-sort" placeholder="sort (networth / wallet / bank / prestige)">
+              <input class="try-input" id="in-lb-limit" placeholder="limit (default 25)" style="max-width:160px;">
+              <button class="try-btn" onclick="tryLeaderboard()">Send</button>
+            </div>
+            <div class="try-status" id="status-lb"></div>
+            <div class="try-result" id="res-lb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ep-global" class="section">
+      <div class="section-title">Global Leaderboard</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1/leaderboard/global</span>
+          <span class="ep-summary">Returns top players across all servers</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Query Parameters</div>
+          <table>
+            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="p-name">sort</td><td class="p-type">string</td><td class="p-req n">No</td><td><code>networth</code> (default), <code>wallet</code>, <code>bank</code>, <code>prestige</code></td></tr>
+            <tr><td class="p-name">limit</td><td class="p-type">number</td><td class="p-req n">No</td><td>1-100, default 25</td></tr>
+          </table>
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"sort"</span>: <span class="s">"networth"</span>,
+  <span class="k">"count"</span>: <span class="n">25</span>,
+  <span class="k">"totalGuilds"</span>: <span class="n">15</span>,
+  <span class="k">"players"</span>: [ <span class="c">... same structure as server leaderboard</span> ]
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <input class="try-input" id="in-gl-sort" placeholder="sort (optional)">
+              <input class="try-input" id="in-gl-limit" placeholder="limit (optional)" style="max-width:160px;">
+              <button class="try-btn" onclick="tryGlobal()">Send</button>
+            </div>
+            <div class="try-status" id="status-gl"></div>
+            <div class="try-result" id="res-gl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ep-stats" class="section">
+      <div class="section-title">Network Stats</div>
+      <div class="ep">
+        <div class="ep-head" onclick="toggle(this)">
+          <span class="badge badge-get">GET</span>
+          <span class="ep-path">/api/v1/stats</span>
+          <span class="ep-summary">Returns global network statistics</span>
+          <span class="ep-arrow">&#9660;</span>
+        </div>
+        <div class="ep-body">
+          <div class="field-label">Response</div>
+          <pre>{
+  <span class="k">"totalPlayers"</span>: <span class="n">105</span>,
+  <span class="k">"totalServers"</span>: <span class="n">15</span>,
+  <span class="k">"totalActiveSlaves"</span>: <span class="n">34</span>,
+  <span class="k">"totalStocks"</span>: <span class="n">15</span>,
+  <span class="k">"totalMoneyInCirculation"</span>: <span class="n">148250000.00</span>
+}</pre>
+          <div class="try-section">
+            <div class="field-label">Try it</div>
+            <div class="try-row">
+              <button class="try-btn" onclick="tryRequest('/api/v1/stats', 'res-stats', 'status-stats')">Send</button>
+            </div>
+            <div class="try-status" id="status-stats"></div>
+            <div class="try-result" id="res-stats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ex-js" class="section">
+      <div class="section-title">JavaScript</div>
+      <pre><span class="c">// Player stats in a specific server</span>
+<span class="b">const</span> res = <span class="b">await</span> fetch(<span class="s">'/api/v1/player/123456789012345678?guildId=987654321098765432'</span>);
+<span class="b">const</span> { data } = <span class="b">await</span> res.json();
+console.log(data.netWorth);
+
+<span class="c">// Global leaderboard top 10</span>
+<span class="b">const</span> lb = <span class="b">await</span> fetch(<span class="s">'/api/v1/leaderboard/global?limit=10'</span>);
+<span class="b">const</span> { data: board } = <span class="b">await</span> lb.json();
+board.players.forEach(p => console.log(p.rank, p.userId, p.netWorth));</pre>
+    </div>
+
+    <div id="ex-python" class="section">
+      <div class="section-title">Python</div>
+      <pre><span class="b">import</span> requests
+
+BASE = <span class="s">"http://economicbomb.nrglearning.xyz/api/v1"</span>
+
+<span class="c"># Network stats</span>
+r = requests.get(<span class="s">f"{BASE}/stats"</span>)
+data = r.json()[<span class="s">"data"</span>]
+print(data[<span class="s">"totalPlayers"</span>])
+
+<span class="c"># Server leaderboard</span>
+r = requests.get(<span class="s">f"{BASE}/leaderboard"</span>, params={
+    <span class="s">"guildId"</span>: <span class="s">"987654321098765432"</span>,
+    <span class="s">"sort"</span>: <span class="s">"networth"</span>,
+    <span class="s">"limit"</span>: <span class="n">10</span>
+})
+players = r.json()[<span class="s">"data"</span>][<span class="s">"players"</span>]</pre>
+    </div>
+
+    <div id="ex-curl" class="section">
+      <div class="section-title">cURL</div>
+      <pre><span class="c"># Player stats</span>
+curl "http://economicbomb.nrglearning.xyz/api/v1/player/123456789012345678"
+
+<span class="c"># Global leaderboard</span>
+curl "http://economicbomb.nrglearning.xyz/api/v1/leaderboard/global?sort=networth&limit=10"
+
+<span class="c"># Network stats</span>
+curl "http://economicbomb.nrglearning.xyz/api/v1/stats"</pre>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-logo"><img src="economicbomb.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;"> Economic<span> Bomb</span></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="https://discord.gg/BBSNXVrHyX">Support</a>
+  </div>
+  <div class="footer-copy">© 2026 Economic Bomb</div>
+</footer>
+
+<script>
+function toggle(head) {
+  const body = head.nextElementSibling;
+  const arrow = head.querySelector('.ep-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+async function tryRequest(url, resultId, statusId) {
+  const resultEl = document.getElementById(resultId);
+  const statusEl = statusId ? document.getElementById(statusId) : null;
+  if (statusEl) { statusEl.textContent = 'Sending...'; statusEl.className = 'try-status'; }
+  resultEl.classList.remove('show');
+  try {
+    const r = await fetch(url);
+    const json = await r.json();
+    if (statusEl) {
+      statusEl.textContent = r.status + ' ' + (r.ok ? 'OK' : 'Error');
+      statusEl.className = 'try-status ' + (r.ok ? 'ok' : 'err');
+    }
+    resultEl.textContent = JSON.stringify(json, null, 2);
+    resultEl.classList.add('show');
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = 'Request failed'; statusEl.className = 'try-status err'; }
+    resultEl.textContent = e.message;
+    resultEl.classList.add('show');
+  }
+}
+
+function tryPlayer() {
+  const id = document.getElementById('in-player-id').value.trim();
+  const guild = document.getElementById('in-player-guild').value.trim();
+  if (!id) return;
+  const url = `/api/v1/player/${id}` + (guild ? `?guildId=${guild}` : '');
+  tryRequest(url, 'res-player', 'status-player');
+}
+
+function tryPortfolio() {
+  const id = document.getElementById('in-port-id').value.trim();
+  const guild = document.getElementById('in-port-guild').value.trim();
+  if (!id || !guild) return;
+  tryRequest(`/api/v1/player/${id}/portfolio?guildId=${guild}`, 'res-port', 'status-port');
+}
+
+function tryLeaderboard() {
+  const guild = document.getElementById('in-lb-guild').value.trim();
+  const sort = document.getElementById('in-lb-sort').value.trim();
+  const limit = document.getElementById('in-lb-limit').value.trim();
+  if (!guild) return;
+  let url = `/api/v1/leaderboard?guildId=${guild}`;
+  if (sort) url += `&sort=${sort}`;
+  if (limit) url += `&limit=${limit}`;
+  tryRequest(url, 'res-lb', 'status-lb');
+}
+
+function tryGlobal() {
+  const sort = document.getElementById('in-gl-sort').value.trim();
+  const limit = document.getElementById('in-gl-limit').value.trim();
+  let url = '/api/v1/leaderboard/global';
+  const params = [];
+  if (sort) params.push('sort=' + sort);
+  if (limit) params.push('limit=' + limit);
+  if (params.length) url += '?' + params.join('&');
+  tryRequest(url, 'res-gl', 'status-gl');
+}
+
+const links = document.querySelectorAll('.sb-link');
+const sections = document.querySelectorAll('.section[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const match = document.querySelector(`.sb-link[href="#${e.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
