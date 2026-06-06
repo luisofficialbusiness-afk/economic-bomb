@@ -1045,11 +1045,11 @@ app.post('/api/dev/announce', requireDev, async (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-// Dev: activity feed (in-memory ring buffer, populated by bot via shared endpoint)
+
 const activityFeed = [];
 const MAX_ACTIVITY = 100;
 
-// Bot posts activity here (called from index.js)
+
 app.post('/api/dev/activity', (req, res) => {
     const { userId, guildId, command, secret } = req.body;
     if (secret !== process.env.ACTIVITY_SECRET) return res.status(403).json({ error: 'Unauthorized' });
@@ -1061,5 +1061,8 @@ app.post('/api/dev/activity', (req, res) => {
 app.get('/api/dev/activity', requireDev, (req, res) => {
     res.json(activityFeed);
 });
+
+const { registerPublicRoutes } = require('./public-routes');
+registerPublicRoutes(app);
 
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
