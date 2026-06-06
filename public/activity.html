@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Activity - Economic Bomb</title>
+<link rel="icon" type="image/png" href="economicbomb.webp">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444; --green: #22c55e; --blue: #60a5fa;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.page { max-width: 960px; margin: 0 auto; padding: 100px 2rem 4rem; }
+.page-header { margin-bottom: 2rem; }
+.page-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+.page-title { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+.page-sub { font-size: 0.9rem; color: var(--muted); }
+
+.controls { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tab-group { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.tab { padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; cursor: pointer; background: var(--surface); color: var(--muted); border: none; border-right: 1px solid var(--border); transition: background 0.15s, color 0.15s; font-family: inherit; }
+.tab:last-child { border-right: none; }
+.tab.active { background: var(--accent); color: #000; }
+.tab:hover:not(.active) { color: var(--text); }
+
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; animation: blink 2s infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.live-label { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+.event-count { font-size: 0.78rem; color: var(--muted); margin-left: auto; }
+
+.feed {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  background: var(--surface);
+}
+.feed-item {
+  display: flex; align-items: flex-start; gap: 1rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  animation: slideIn 0.25s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.feed-item:last-child { border-bottom: none; }
+.feed-item:hover { background: rgba(255,255,255,0.015); }
+
+.event-icon {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; font-family: 'DM Mono', monospace;
+}
+.icon-rob { background: rgba(239,68,68,0.12); color: var(--red); }
+.icon-slave { background: rgba(234,179,8,0.12); color: var(--accent); }
+.icon-duel { background: rgba(239,68,68,0.12); color: var(--red); }
+.icon-stock { background: rgba(96,165,250,0.12); color: var(--blue); }
+.icon-work { background: rgba(34,197,94,0.12); color: var(--green); }
+.icon-daily { background: rgba(34,197,94,0.12); color: var(--green); }
+.icon-gamble { background: rgba(234,179,8,0.12); color: var(--accent); }
+.icon-hitman { background: rgba(239,68,68,0.12); color: var(--red); }
+.icon-other { background: var(--subtle); color: var(--muted); }
+
+.event-body { flex: 1; min-width: 0; }
+.event-line { font-size: 0.88rem; line-height: 1.45; }
+.event-line strong { color: var(--text); font-weight: 600; }
+.event-line .amt { color: var(--accent); font-family: 'DM Mono', monospace; }
+.event-line .amt.red { color: var(--red); }
+.event-line .amt.green { color: var(--green); }
+.event-meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.75rem; font-family: 'DM Mono', monospace; }
+
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+.empty-state .big { font-size: 2rem; margin-bottom: 0.75rem; }
+
+.skeleton { background: var(--subtle); border-radius: 4px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.sk-item { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); align-items: center; }
+
+footer { border-top: 1px solid var(--border); padding: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 4rem; }
+.footer-logo { font-size: 0.88rem; font-weight: 600; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.82rem; color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { font-size: 0.78rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" style="height:24px;width:24px;object-fit:contain;border-radius:4px;">
+    Economic<span class="logo-dot">.</span>Bomb
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Commands</a>
+    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+    <a href="activity.html" class="nav-link" style="color:var(--text)">Activity</a>
+    <a href="status.html" class="nav-link">Status</a>
+    <a href="login.html" class="nav-link">Dashboard</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-label">Live Feed</div>
+    <div class="page-title">Activity Board</div>
+    <div class="page-sub">Real-time events across all Economic Bomb servers. Refreshes every 10 seconds.</div>
+  </div>
+
+  <div class="controls">
+    <div class="tab-group">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="rob">Robs</button>
+      <button class="tab" data-filter="slave">Slave</button>
+      <button class="tab" data-filter="stock">Stocks</button>
+      <button class="tab" data-filter="gamble">Gambling</button>
+      <button class="tab" data-filter="hitman">Hitman</button>
+    </div>
+    <div class="live-label"><div class="live-dot"></div>Live</div>
+    <div class="event-count" id="event-count">-- events</div>
+  </div>
+
+  <div class="feed" id="feed">
+    <div class="sk-item"><div class="skeleton" style="width:34px;height:34px;border-radius:8px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="width:70%;height:13px;margin-bottom:6px"></div><div class="skeleton" style="width:40%;height:11px"></div></div></div>
+    <div class="sk-item"><div class="skeleton" style="width:34px;height:34px;border-radius:8px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="width:55%;height:13px;margin-bottom:6px"></div><div class="skeleton" style="width:35%;height:11px"></div></div></div>
+    <div class="sk-item"><div class="skeleton" style="width:34px;height:34px;border-radius:8px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="width:65%;height:13px;margin-bottom:6px"></div><div class="skeleton" style="width:45%;height:11px"></div></div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo"><img src="economicbomb.webp" style="height:22px;width:22px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;">Economic<span> Bomb</span></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="https://discord.gg/BBSNXVrHyX">Support</a>
+  </div>
+  <div class="footer-copy">© 2026 Economic Bomb</div>
+</footer>
+
+<script>
+let allEvents = [];
+let activeFilter = 'all';
+
+const TYPE_META = {
+  rob:     { label: 'ROB',   cls: 'icon-rob' },
+  slave:   { label: 'SLV',   cls: 'icon-slave' },
+  duel:    { label: 'DUL',   cls: 'icon-duel' },
+  stock:   { label: 'STK',   cls: 'icon-stock' },
+  work:    { label: 'WRK',   cls: 'icon-work' },
+  daily:   { label: 'DAY',   cls: 'icon-daily' },
+  gamble:  { label: 'GMB',   cls: 'icon-gamble' },
+  hitman:  { label: 'HIT',   cls: 'icon-hitman' },
+  other:   { label: '---',   cls: 'icon-other' },
+};
+
+const fmtMoney = n => {
+  const v = parseFloat(n ?? 0);
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(2);
+};
+
+const timeAgo = iso => {
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  return Math.floor(s/3600) + 'h ago';
+};
+
+const shortId = id => id ? id.substring(0, 6) + '...' : '???';
+
+function buildLine(ev) {
+  const actor = `<strong>${shortId(ev.userId)}</strong>`;
+  const target = ev.targetId ? `<strong>${shortId(ev.targetId)}</strong>` : null;
+  const amt = ev.amount ? `<span class="amt ${ev.amountColor || ''}">${fmtMoney(ev.amount)}</span>` : null;
+
+  switch (ev.type) {
+    case 'rob':
+      return ev.success
+        ? `${actor} robbed ${target} for ${amt}`
+        : `${actor} attempted to rob ${target} and failed`;
+    case 'slave':
+      if (ev.subtype === 'buy') return `${actor} enslaved ${target} for ${amt}`;
+      if (ev.subtype === 'outbid') return `${actor} outbid for ${target} - new debt ${amt}`;
+      if (ev.subtype === 'free') return `${actor} freed ${target}`;
+      return `${actor} slave action`;
+    case 'duel':
+      return ev.success
+        ? `${actor} defeated ${target} in a duel, winning ${amt}`
+        : `${actor} lost a duel to ${target}`;
+    case 'stock':
+      if (ev.subtype === 'buy') return `${actor} bought <strong>${ev.shares} ${ev.ticker}</strong> shares for ${amt}`;
+      if (ev.subtype === 'sell') return `${actor} sold <strong>${ev.shares} ${ev.ticker}</strong> shares for ${amt}`;
+      return `${actor} stock action`;
+    case 'gamble':
+      return ev.success
+        ? `${actor} won ${amt} gambling`
+        : `${actor} lost ${amt} gambling`;
+    case 'hitman':
+      return ev.success
+        ? `${actor} had a hitman hit ${target} - seized ${amt}`
+        : `${actor} hitman contract on ${target} failed`;
+    case 'work': return `${actor} worked and earned ${amt}`;
+    case 'daily': return `${actor} claimed their daily - streak <strong>${ev.streak || 1}</strong>`;
+    default: return `${actor} used <strong>${ev.command || 'command'}</strong>`;
+  }
+}
+
+function render() {
+  const feed = document.getElementById('feed');
+  let data = allEvents;
+
+  if (activeFilter !== 'all') {
+    data = data.filter(e => e.type === activeFilter);
+  }
+
+  document.getElementById('event-count').textContent = data.length + ' events';
+
+  if (!data.length) {
+    feed.innerHTML = '<div class="empty-state"><div class="big">--</div>No activity yet. Events appear here as players use the bot.</div>';
+    return;
+  }
+
+  feed.innerHTML = data.map(ev => {
+    const meta = TYPE_META[ev.type] || TYPE_META.other;
+    const line = buildLine(ev);
+    const guild = ev.guildName ? ev.guildName.substring(0, 20) : ev.guildId ? shortId(ev.guildId) : 'Unknown';
+    return `<div class="feed-item">
+      <div class="event-icon ${meta.cls}">${meta.label}</div>
+      <div class="event-body">
+        <div class="event-line">${line}</div>
+        <div class="event-meta">
+          <span>${timeAgo(ev.ts)}</span>
+          <span>${guild}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/public/activity');
+    allEvents = await r.json();
+    render();
+  } catch {
+    document.getElementById('feed').innerHTML = '<div class="empty-state"><div class="big">--</div>Could not connect to activity feed.</div>';
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeFilter = t.dataset.filter;
+    render();
+  });
+});
+
+load();
+setInterval(render, 5000);
+setInterval(load, 10000);
+</script>
+</body>
+</html>

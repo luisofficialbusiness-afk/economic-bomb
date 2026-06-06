@@ -255,39 +255,40 @@ nav {
 .up { color: var(--green); }
 .dn { color: var(--red); }
 
-.launch {
+.live-stats {
   padding: 6rem 2rem;
   text-align: center;
   border-top: 1px solid var(--border);
 }
-.launch-date {
+.live-stats-label {
   font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--muted);
   margin-bottom: 1.25rem;
 }
-.launch h2 {
+.live-stats h2 {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 600; letter-spacing: -0.04em;
   margin-bottom: 0.75rem;
 }
-.launch p { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; }
-.countdown {
-  display: inline-flex; gap: 0.6rem;
+.live-stats p { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; }
+.live-stat-grid {
+  display: inline-flex; gap: 0;
   border: 1px solid var(--border);
   border-radius: 10px; overflow: hidden;
   margin-bottom: 2.5rem;
 }
-.cblock {
-  padding: 1.25rem 1.75rem; text-align: center;
+.live-stat-block {
+  padding: 1.25rem 2rem; text-align: center;
   border-right: 1px solid var(--border);
+  min-width: 140px;
 }
-.cblock:last-child { border-right: none; }
-.cn {
+.live-stat-block:last-child { border-right: none; }
+.lsn {
   font-family: 'DM Mono', monospace;
-  font-size: 2rem; font-weight: 500;
-  display: block; color: var(--text);
+  font-size: 1.6rem; font-weight: 500;
+  display: block; color: var(--accent);
 }
-.cl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+.lsl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
 
 footer {
   padding: 2rem;
@@ -331,7 +332,7 @@ footer {
 <section class="hero">
   <div class="hero-eyebrow">
     <span class="eyebrow-dot"></span>
-    Launching June 15, 2026
+    Now Live
   </div>
   <h1>The Discord bot that<br/><em>blows up</em> your economy</h1>
   <p>Stock market, slave system, gambling, seasonal resets — all in one bot. Built for competitive servers.</p>
@@ -459,17 +460,16 @@ footer {
   </div>
 </div>
 
-<section class="launch">
-  <div class="launch-date">Public Launch</div>
-  <h2>June 15, 2026</h2>
-  <p>The economy detonates. Get your server ready.</p>
-  <div class="countdown">
-    <div class="cblock"><span class="cn" id="days">--</span><div class="cl">Days</div></div>
-    <div class="cblock"><span class="cn" id="hours">--</span><div class="cl">Hours</div></div>
-    <div class="cblock"><span class="cn" id="mins">--</span><div class="cl">Minutes</div></div>
-    <div class="cblock"><span class="cn" id="secs">--</span><div class="cl">Seconds</div></div>
+<section class="live-stats">
+  <div class="live-stats-label">Live Network</div>
+  <h2>Economic Bomb is live.</h2>
+  <p>Real numbers. Updated every 60 seconds.</p>
+  <div class="live-stat-grid">
+    <div class="live-stat-block"><span class="lsn" id="ls-servers">--</span><div class="lsl">Servers</div></div>
+    <div class="live-stat-block"><span class="lsn" id="ls-players">--</span><div class="lsl">Players</div></div>
+    <div class="live-stat-block"><span class="lsn" id="ls-slaves">--</span><div class="lsl">Active Slaves</div></div>
+    <div class="live-stat-block"><span class="lsn" id="ls-money">--</span><div class="lsl">In Circulation</div></div>
   </div>
-  <br/>
   <div class="hero-actions" style="justify-content:center;">
     <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="btn btn-fill">Add to Discord</a>
     <a href="https://discord.gg/BBSNXVrHyX" class="btn btn-outline">Support Server</a>
@@ -488,17 +488,24 @@ footer {
 </footer>
 
 <script>
-const launch = new Date('2026-06-15T00:00:00');
-function tick() {
-  const diff = launch - new Date();
-  if (diff <= 0) { ['days','hours','mins','secs'].forEach(id => document.getElementById(id).textContent = '00'); return; }
-  const pad = n => String(n).padStart(2,'0');
-  document.getElementById('days').textContent  = pad(Math.floor(diff/86400000));
-  document.getElementById('hours').textContent = pad(Math.floor(diff%86400000/3600000));
-  document.getElementById('mins').textContent  = pad(Math.floor(diff%3600000/60000));
-  document.getElementById('secs').textContent  = pad(Math.floor(diff%60000/1000));
+async function loadLiveStats() {
+  try {
+    const r = await fetch('/api/public/stats');
+    const d = await r.json();
+    const fmt = n => {
+      if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+      return String(n);
+    };
+    document.getElementById('ls-servers').textContent = fmt(d.totalGuilds ?? 0);
+    document.getElementById('ls-players').textContent = fmt(d.totalUsers ?? 0);
+    document.getElementById('ls-slaves').textContent  = fmt(d.totalSlaves ?? 0);
+    document.getElementById('ls-money').textContent   = '$' + fmt(Math.round(parseFloat(d.totalMoney ?? 0)));
+  } catch {}
 }
-tick(); setInterval(tick, 1000);
+loadLiveStats();
+setInterval(loadLiveStats, 60000);
 </script>
 </body>
 </html>

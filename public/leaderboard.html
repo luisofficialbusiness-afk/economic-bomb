@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Leaderboard - Economic Bomb</title>
+<link rel="icon" type="image/png" href="economicbomb.webp">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0e0e10; --surface: #18181b; --border: #27272a;
+  --text: #fafafa; --muted: #71717a; --subtle: #3f3f46;
+  --accent: #eab308; --accent-dim: rgba(234,179,8,0.12);
+  --red: #ef4444; --green: #22c55e; --blue: #60a5fa;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; background: rgba(14,14,16,0.8); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.logo-dot { color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link { padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--muted); transition: color 0.15s, background 0.15s; }
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-btn { margin-left: 0.5rem; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: var(--accent); color: #000; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.88; }
+
+.page { max-width: 960px; margin: 0 auto; padding: 100px 2rem 4rem; }
+
+.page-header { margin-bottom: 2rem; }
+.page-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+.page-title { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+.page-sub { font-size: 0.9rem; color: var(--muted); }
+
+.controls {
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.tab-group { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.tab {
+  padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; cursor: pointer;
+  background: var(--surface); color: var(--muted); border: none; border-right: 1px solid var(--border);
+  transition: background 0.15s, color 0.15s; font-family: inherit;
+}
+.tab:last-child { border-right: none; }
+.tab.active { background: var(--accent); color: #000; }
+.tab:hover:not(.active) { color: var(--text); }
+
+.search-wrap { flex: 1; min-width: 180px; }
+.search-input {
+  width: 100%; padding: 0.45rem 0.9rem; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  font-size: 0.85rem; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--subtle); }
+.search-input::placeholder { color: var(--muted); }
+
+.count-note { font-size: 0.78rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+.lb-table { width: 100%; border-collapse: collapse; }
+.lb-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.lb-table th {
+  padding: 0.75rem 1.25rem; font-size: 0.72rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); text-align: left;
+  border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.lb-table th.right { text-align: right; }
+.lb-table td { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.lb-table tr:last-child td { border-bottom: none; }
+.lb-table tr { transition: background 0.1s; }
+.lb-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.rank-cell { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--muted); width: 48px; }
+.rank-1 { color: var(--accent); font-weight: 600; }
+.rank-2 { color: #9ca3af; font-weight: 600; }
+.rank-3 { color: #b45309; font-weight: 600; }
+
+.player-cell { display: flex; align-items: center; gap: 0.75rem; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--subtle); flex-shrink: 0; object-fit: cover; }
+.player-name { font-weight: 500; font-size: 0.9rem; }
+.player-tag { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+.guild-tag {
+  font-size: 0.7rem; color: var(--muted); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 0.1rem 0.4rem; margin-left: 0.4rem; vertical-align: middle;
+}
+
+.money-cell { font-family: 'DM Mono', monospace; font-size: 0.88rem; text-align: right; }
+.money-total { color: var(--text); font-weight: 500; }
+.money-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+.tag-enslaved { font-size: 0.68rem; font-weight: 600; color: var(--red); background: rgba(239,68,68,0.1); border-radius: 3px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.tag-prestige { font-size: 0.7rem; color: var(--accent); margin-left: 0.3rem; }
+
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+.empty-state div { font-size: 2rem; margin-bottom: 0.75rem; }
+
+.skeleton { background: var(--subtle); border-radius: 4px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.sk-row td { padding: 1rem 1.25rem; }
+
+footer { border-top: 1px solid var(--border); padding: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 4rem; }
+.footer-logo { font-size: 0.88rem; font-weight: 600; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.82rem; color: var(--muted); transition: color 0.15s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { font-size: 0.78rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <img src="economicbomb.webp" style="height:24px;width:24px;object-fit:contain;border-radius:4px;">
+    Economic<span class="logo-dot">.</span>Bomb
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="commands.html" class="nav-link">Commands</a>
+    <a href="leaderboard.html" class="nav-link" style="color:var(--text)">Leaderboard</a>
+    <a href="activity.html" class="nav-link">Activity</a>
+    <a href="status.html" class="nav-link">Status</a>
+    <a href="login.html" class="nav-link">Dashboard</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="nav-btn">Add to Discord</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-label">Global Rankings</div>
+    <div class="page-title">Leaderboard</div>
+    <div class="page-sub">Top players across all servers. Updates every 60 seconds.</div>
+  </div>
+
+  <div class="controls">
+    <div class="tab-group">
+      <button class="tab active" data-mode="networth">Net Worth</button>
+      <button class="tab" data-mode="wallet">Wallet</button>
+      <button class="tab" data-mode="bank">Bank</button>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" id="search" placeholder="Search by user ID..." type="text">
+    </div>
+    <div class="count-note" id="count-note">-- players</div>
+  </div>
+
+  <div class="lb-wrap">
+    <table class="lb-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Server</th>
+          <th class="right">Wallet</th>
+          <th class="right">Bank</th>
+          <th class="right" id="sort-label">Net Worth</th>
+        </tr>
+      </thead>
+      <tbody id="lb-body">
+        <tr class="sk-row"><td><div class="skeleton" style="width:24px;height:14px"></div></td><td><div class="skeleton" style="width:140px;height:14px"></div></td><td><div class="skeleton" style="width:80px;height:14px"></div></td><td></td><td></td><td></td></tr>
+        <tr class="sk-row"><td><div class="skeleton" style="width:24px;height:14px"></div></td><td><div class="skeleton" style="width:120px;height:14px"></div></td><td><div class="skeleton" style="width:90px;height:14px"></div></td><td></td><td></td><td></td></tr>
+        <tr class="sk-row"><td><div class="skeleton" style="width:24px;height:14px"></div></td><td><div class="skeleton" style="width:160px;height:14px"></div></td><td><div class="skeleton" style="width:70px;height:14px"></div></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo"><img src="economicbomb.webp" style="height:22px;width:22px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;">Economic<span> Bomb</span></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="commands.html">Commands</a>
+    <a href="https://discord.gg/BBSNXVrHyX">Support</a>
+  </div>
+  <div class="footer-copy">© 2026 Economic Bomb</div>
+</footer>
+
+<script>
+let allData = [];
+let mode = 'networth';
+let searchVal = '';
+
+const fmtMoney = n => {
+  const v = parseFloat(n ?? 0);
+  if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+  if (v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(2);
+};
+
+const rankClass = r => r === 1 ? 'rank-1' : r === 2 ? 'rank-2' : r === 3 ? 'rank-3' : '';
+
+function render() {
+  const body = document.getElementById('lb-body');
+  let data = [...allData];
+
+  if (searchVal) {
+    const q = searchVal.toLowerCase();
+    data = data.filter(r => r.userId.toLowerCase().includes(q) || (r.guildName || '').toLowerCase().includes(q));
+  }
+
+  data.sort((a, b) => {
+    if (mode === 'wallet') return b.balance - a.balance;
+    if (mode === 'bank') return b.bank - a.bank;
+    return b.total - a.total;
+  });
+
+  document.getElementById('count-note').textContent = data.length + ' players';
+  document.getElementById('sort-label').textContent = mode === 'wallet' ? 'Wallet' : mode === 'bank' ? 'Bank' : 'Net Worth';
+
+  if (!data.length) {
+    body.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div>--</div>No players found.</div></td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.map((r, i) => {
+    const rank = i + 1;
+    const rc = rankClass(rank);
+    const highlight = mode === 'wallet' ? fmtMoney(r.balance) : mode === 'bank' ? fmtMoney(r.bank) : fmtMoney(r.total);
+    const avatarUrl = r.avatar || ('https://cdn.discordapp.com/embed/avatars/' + (parseInt(r.userId) % 6) + '.png');
+    const enslavedTag = r.isEnslave ? '<span class="tag-enslaved">enslaved</span>' : '';
+    const prestigeTag = r.prestige ? '<span class="tag-prestige">' + (r.prestigeBadge || '') + '</span>' : '';
+    const guildName = r.guildName ? '<span class="guild-tag">' + r.guildName.substring(0, 16) + '</span>' : '--';
+    return `<tr>
+      <td class="rank-cell ${rc}">${rank}</td>
+      <td>
+        <div class="player-cell">
+          <img class="avatar" src="${avatarUrl}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+          <div>
+            <div class="player-name">${r.userId}${enslavedTag}${prestigeTag}</div>
+            <div class="player-tag">${r.userId}</div>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-size:0.82rem;color:var(--muted)">${guildName}</span></td>
+      <td class="money-cell"><div class="money-total">${fmtMoney(r.balance)}</div></td>
+      <td class="money-cell"><div class="money-total">${fmtMoney(r.bank)}</div></td>
+      <td class="money-cell"><div class="money-total" style="color:var(--accent)">${highlight}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/public/leaderboard');
+    allData = await r.json();
+    render();
+  } catch {
+    document.getElementById('lb-body').innerHTML = '<tr><td colspan="6"><div class="empty-state"><div>--</div>Failed to load leaderboard.</div></td></tr>';
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    mode = t.dataset.mode;
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchVal = e.target.value.trim();
+  render();
+});
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
