@@ -1065,4 +1065,7 @@ app.get('/api/dev/activity', requireDev, (req, res) => {
 const { registerPublicRoutes } = require('./public-routes');
 registerPublicRoutes(app);
 
+const { registerAPI } = require('./api');
+registerAPI(app);
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
