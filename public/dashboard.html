@@ -935,6 +935,7 @@ function loadSection(sec) {
   if (sec === 'modules') loadModules();
   if (sec === 'devpanel') { loadDevGuilds(); loadDevLogs(); }
   if (sec === 'dev-banned') { switchDevTab('banned'); devLoadBannedServers(); }
+  if (sec === 'events') { loadEventConfig(); loadCD(); }
 }
 
 setInterval(() => {
@@ -1983,19 +1984,7 @@ window.triggerEvent = async function(eventId, btn) {
     }
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    const evSection = document.getElementById('sec-events');
-    if (evSection) {
-        const obs = new MutationObserver(() => {
-            if (evSection.style.display !== 'none' && evSection.offsetParent !== null) {
-                loadEventConfig();
-                loadCD();
-                obs.disconnect();
-            }
-        });
-        obs.observe(evSection, { attributes: true, attributeFilter: ['style'] });
-    }
-});
+renderGrid(false);
 
 })();
 </script>
