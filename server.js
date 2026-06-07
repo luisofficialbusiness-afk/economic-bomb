@@ -1068,4 +1068,7 @@ registerPublicRoutes(app);
 const { registerAPI } = require('./api');
 registerAPI(app);
 
+const { registerEventRoutes } = require('./event-routes');
+registerEventRoutes(app);
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
