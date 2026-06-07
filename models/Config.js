@@ -35,7 +35,9 @@ const ConfigSchema = new mongoose.Schema({
             bannedAt: { type: Date, default: Date.now }
         }],
         default: []
-    }
+    },
+    eventChannelId: { type: String, default: null },
+    eventRoleId:    { type: String, default: null },
 });
 
 module.exports = mongoose.models.Config || mongoose.model('Config', ConfigSchema);
