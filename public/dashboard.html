@@ -217,11 +217,12 @@ input::placeholder { color: var(--muted); }
 .sev-high { background: rgba(239,68,68,0.1); color: var(--red); }
 .sev-medium { background: rgba(234,179,8,0.1); color: var(--accent); }
 
+/* FIX: dev-tab-content hidden by default via CSS so JS display toggling is the single source of truth */
 .dev-tab { background: none; border: none; padding: 0.4rem 0.9rem; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.15s; }
 .dev-tab:hover { color: var(--text); background: var(--bg); }
 .dev-tab.active { color: var(--text); background: var(--bg); border: 1px solid var(--border); }
 .dev-tab-content { display: none; }
-.dev-tab-content.active { display: block; }
+
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 @media (max-width: 800px) { .sidebar { display: none; } .content { padding: 1.5rem; } .breakdown-grid { grid-template-columns: 1fr; } }
@@ -560,17 +561,20 @@ input::placeholder { color: var(--muted); }
       <div class="sec-title">Dev Console</div>
 
       <div style="display:flex;gap:0.25rem;margin-bottom:2rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.3rem;width:fit-content">
-        <button class="dev-tab active" onclick="switchDevTab('overview')">Overview</button>
-        <button class="dev-tab" onclick="switchDevTab('activity')">Live Activity</button>
-        <button class="dev-tab" onclick="switchDevTab('alerts')">Alerts</button>
-        <button class="dev-tab" onclick="switchDevTab('sessions')">Sessions</button>
-        <button class="dev-tab" onclick="switchDevTab('announce')">Announce</button>
-        <button class="dev-tab" onclick="switchDevTab('tools')">Tools</button>
-        <button class="dev-tab" onclick="switchDevTab('logs')">Logs</button>
-        <button class="dev-tab" onclick="switchDevTab('banned')">Banned Servers</button>
+        <!-- FIX: pass event object explicitly instead of relying on implicit global `event` -->
+        <button class="dev-tab active" onclick="switchDevTab(event,'overview')">Overview</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'activity')">Live Activity</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'alerts')">Alerts</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'sessions')">Sessions</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'announce')">Announce</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'tools')">Tools</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'logs')">Logs</button>
+        <button class="dev-tab" onclick="switchDevTab(event,'banned')">Banned Servers</button>
       </div>
 
-      <div class="dev-tab-content active" id="devtab-overview">
+      <!-- FIX: removed inline style="display:none" from all tab contents; CSS .dev-tab-content { display:none } handles it uniformly -->
+      <!-- FIX: initial overview tab shown by setting display:block via JS on DOMContentLoaded instead of mixed inline/CSS -->
+      <div class="dev-tab-content" id="devtab-overview">
         <div class="stat-grid" style="margin-bottom:1.5rem">
           <div class="stat-card"><span class="stat-n blue" id="devGuildCount">—</span><div class="stat-l">Bot Servers</div></div>
           <div class="stat-card"><span class="stat-n green" id="devGlobalUsers">—</span><div class="stat-l">Total Users</div></div>
@@ -626,7 +630,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-activity" style="display:none">
+      <div class="dev-tab-content" id="devtab-activity">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
           <div>
             <div style="font-size:0.9rem;font-weight:600">Live Activity Feed</div>
@@ -649,11 +653,10 @@ input::placeholder { color: var(--muted); }
         <div style="font-size:0.78rem;color:var(--muted);margin-top:0.75rem">Note: Activity tracking requires <code style="font-family:'DM Mono',monospace;color:var(--accent)">ACTIVITY_SECRET</code> to be set in both <code style="font-family:'DM Mono',monospace;color:var(--accent)">.env</code> files and the bot must post to <code style="font-family:'DM Mono',monospace;color:var(--accent)">/api/dev/activity</code> on each command.</div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-alerts" style="display:none">
+      <div class="dev-tab-content" id="devtab-alerts">
         <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="loadDevAlerts()">↻ Refresh All Alerts</button>
         </div>
-
 
         <div class="table-wrap" style="margin-bottom:1.5rem">
           <div class="table-head">
@@ -665,7 +668,6 @@ input::placeholder { color: var(--muted); }
             <tbody id="devCrashedBody"><tr><td colspan="5" class="loading">Click refresh to load</td></tr></tbody>
           </table>
         </div>
-
 
         <div class="table-wrap">
           <div class="table-head">
@@ -679,8 +681,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-
-      <div class="dev-tab-content" id="devtab-sessions" style="display:none">
+      <div class="dev-tab-content" id="devtab-sessions">
         <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Users active in the last 30 minutes.</div>
         <div class="table-wrap">
           <div class="table-head">
@@ -695,7 +696,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-announce" style="display:none">
+      <div class="dev-tab-content" id="devtab-announce">
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red);line-height:1.7">
           <strong>Warning:</strong> This sends a message to the first text channel of every server the bot is in. Use with extreme caution.
           You must type <code style="font-family:'DM Mono',monospace;background:rgba(239,68,68,0.1);padding:0.1rem 0.4rem;border-radius:4px">ANNOUNCE TO ALL SERVERS</code> exactly in the confirmation field.
@@ -715,7 +716,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-tools" style="display:none">
+      <div class="dev-tab-content" id="devtab-tools">
         <div class="action-grid">
           <div class="action-card">
             <h3>User Balance Editor</h3>
@@ -749,7 +750,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-logs" style="display:none">
+      <div class="dev-tab-content" id="devtab-logs">
         <div class="table-wrap">
           <div class="table-head">
             <h3>Error Logs</h3>
@@ -763,7 +764,7 @@ input::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="dev-tab-content" id="devtab-banned" style="display:none">
+      <div class="dev-tab-content" id="devtab-banned">
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--red)">
           Banned servers cannot use any Economic Bomb commands. All command attempts from banned servers show a ban message.
         </div>
@@ -909,6 +910,8 @@ async function loadMe() {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.getElementById('devSidebarLink').classList.add('active');
       document.getElementById('sec-devpanel').classList.add('active');
+      // FIX: show the initial dev tab explicitly since CSS now hides all .dev-tab-content by default
+      document.getElementById('devtab-overview').style.display = 'block';
       loadDevGuilds();
       loadDevGlobalStats();
       loadDevLogs();
@@ -934,8 +937,9 @@ function loadSection(sec) {
   if (sec === 'bans') loadBans();
   if (sec === 'modules') loadModules();
   if (sec === 'devpanel') { loadDevGuilds(); loadDevLogs(); }
-  if (sec === 'dev-banned') { switchDevTab('banned'); devLoadBannedServers(); }
-  if (sec === 'events') { loadEventConfig(); loadCD(); }
+  if (sec === 'dev-banned') { switchDevTabById('banned'); devLoadBannedServers(); }
+  // FIX: loadEventConfig and loadCD are now exposed on window from the IIFE below
+  if (sec === 'events') { window.loadEventConfig && window.loadEventConfig(); window.loadCD && window.loadCD(); }
 }
 
 setInterval(() => {
@@ -1160,7 +1164,6 @@ async function saveChannels() {
   } catch(e) { toast('❌ Failed to save', 'error'); }
 }
 
-
 async function loadAnticheat() {
   try {
     const res = await fetch('/api/anticheat');
@@ -1190,6 +1193,19 @@ async function quickResetBalance(userId) {
   const d1 = await r1.json();
   d1.success ? toast('✅ Wallet and bank reset to $0') : toast('❌ ' + d1.error, 'error');
   loadAnticheat();
+}
+
+// FIX: added missing quickBan function that was called in anticheat rows but never defined
+async function quickBan(userId) {
+  const reason = prompt(`Reason for banning ${userId}:`) ?? '';
+  if (!confirm(`Ban user ${userId}?`)) return;
+  const res = await fetch('/api/bans/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, reason })
+  });
+  const d = await res.json();
+  d.success ? toast(`✅ ${userId} banned`) : toast('❌ ' + d.error, 'error');
 }
 
 let removeStockUserId = null;
@@ -1581,16 +1597,27 @@ async function loadDevLogs() {
   } catch(e) {}
 }
 
-function switchDevTab(tab) {
+// FIX: switchDevTab now accepts an explicit event parameter instead of relying on implicit global `event`
+function switchDevTab(e, tab) {
   document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.dev-tab-content').forEach(t => { t.style.display = 'none'; t.classList.remove('active'); });
-  event.target.classList.add('active');
+  document.querySelectorAll('.dev-tab-content').forEach(t => { t.style.display = 'none'; });
+  e.target.classList.add('active');
   const el = document.getElementById('devtab-' + tab);
-  if (el) { el.style.display = 'block'; el.classList.add('active'); }
+  if (el) { el.style.display = 'block'; }
   if (tab === 'activity') loadDevActivity();
   if (tab === 'alerts') loadDevAlerts();
   if (tab === 'sessions') loadDevSessions();
   if (tab === 'logs') loadDevLogs();
+}
+
+// FIX: programmatic tab switch (used by loadSection for dev-banned) that doesn't need an event object
+function switchDevTabById(tab) {
+  document.querySelectorAll('.dev-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.trim().toLowerCase() === tab || t.getAttribute('onclick')?.includes("'" + tab + "'"));
+  });
+  document.querySelectorAll('.dev-tab-content').forEach(t => { t.style.display = 'none'; });
+  const el = document.getElementById('devtab-' + tab);
+  if (el) el.style.display = 'block';
 }
 
 async function loadDevNewPlayers() {
@@ -1644,7 +1671,6 @@ async function loadDevAlerts() {
     const crashed = await crashedRes.json();
     const broken = await brokenRes.json();
 
-    // Crashed markets
     if (!crashed.length) {
       document.getElementById('devCrashedBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--green)">✓ No crashed markets</td></tr>';
     } else {
@@ -1663,7 +1689,6 @@ async function loadDevAlerts() {
       ).join('');
     }
 
-
     if (!broken.length) {
       document.getElementById('devBrokenBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--green)">✓ No broken economies</td></tr>';
     } else {
@@ -1676,7 +1701,7 @@ async function loadDevAlerts() {
           <td class="mono">$${Number(b.totalCirculation).toLocaleString()}</td>
           <td style="display:flex;gap:0.3rem;flex-wrap:wrap">
             <button class="btn btn-danger btn-sm" onclick="devResetUser('${b.guildId}','${b.topUserId}')">Reset User</button>
-            <button class="btn btn-outline btn-sm" onclick="inspectGuild('${b.guildId}');switchDevTab('overview')">Inspect</button>
+            <button class="btn btn-outline btn-sm" onclick="inspectGuild('${b.guildId}');switchDevTabById('overview')">Inspect</button>
           </td>
         </tr>
       `).join('');
@@ -1756,7 +1781,6 @@ async function devSendAnnouncement() {
     resultEl.textContent = '❌ Failed: ' + e.message;
   }
 }
-
 
 let currentInspectedGuildId = null;
 
@@ -1850,7 +1874,8 @@ const EMETA = {
     stock_crash:    { emoji: '📉', desc: 'All stocks drop 10-25% instantly.',                     dur: 'Instant'},
 };
 
-async function loadEventConfig() {
+// FIX: exposed on window so loadSection can call them from outside this IIFE
+window.loadEventConfig = async function() {
     try {
         const [cfgR, chR, roR] = await Promise.all([
             fetch('/api/event/config'),
@@ -1883,7 +1908,7 @@ async function loadEventConfig() {
             });
         }
     } catch(e) { console.error(e); }
-}
+};
 
 window.saveEventConfig = async function() {
     const chId = document.getElementById('event-channel-select')?.value || null;
@@ -1925,7 +1950,7 @@ function renderGrid(onCD) {
     grid.innerHTML = ids.map(id => {
         const m = EMETA[id] || {};
         return '<div class="event-card">' +
-            '<div class="event-card-head">' + (m.emoji||'') + ' ' + id.replace(/_/g,' ').replace(/\w/g,c=>c.toUpperCase()) + '</div>' +
+            '<div class="event-card-head">' + (m.emoji||'') + ' ' + id.replace(/_/g,' ').replace(/\w/g,c=>c.toUpperCase()) + '</div>' +
             '<div class="event-card-desc">' + (m.desc||'') + '</div>' +
             '<div class="event-card-meta">' + (m.dur||'') + '</div>' +
             '<button class="event-trigger-btn" onclick="triggerEvent(\'' + id + '\',this)" ' + (onCD ? 'disabled' : '') + '>' +
@@ -1934,7 +1959,8 @@ function renderGrid(onCD) {
     }).join('');
 }
 
-async function loadCD() {
+// FIX: exposed on window so loadSection can call it from outside this IIFE
+window.loadCD = async function() {
     try {
         const r = await fetch('/api/event/cooldown');
         const d = await r.json();
@@ -1949,7 +1975,7 @@ async function loadCD() {
             }, 1000);
         }
     } catch {}
-}
+};
 
 window.triggerEvent = async function(eventId, btn) {
     if (cdRemaining > 0) return;
