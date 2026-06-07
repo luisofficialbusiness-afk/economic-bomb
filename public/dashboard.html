@@ -269,6 +269,7 @@ input::placeholder { color: var(--muted); }
     <a class="sb-link" data-section="bans">Bans</a>
     <a class="sb-link" data-section="modules">Modules</a>
     <a class="sb-link" data-section="channels"> Channels</a>
+    <a class="sb-link" data-section="events">Events</a>
     <a class="sb-link" data-section="actions"> Actions</a>
     <div class="sb-label" id="devSidebarLabel" style="display:none">Developer</div>
     <a class="sb-link" id="devSidebarLink" data-section="devpanel" style="display:none">Debug Panel</a>
@@ -440,6 +441,40 @@ input::placeholder { color: var(--muted); }
           <button class="btn btn-fill" onclick="saveChannels()">Save Changes</button>
         </div>
       </div>
+    </div>
+
+    <div class="section" id="sec-events">
+      <div class="sec-label">Admin</div>
+      <div class="sec-title">Server Events</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Trigger server-wide events that affect all players. Events share a 1-hour cooldown per server - admins included.</p>
+
+      <div class="table-wrap" style="margin-bottom:2rem;">
+        <div class="table-head"><h3>Event Announcements</h3></div>
+        <div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1rem;">
+          <div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Announcement Channel</div>
+            <select id="event-channel-select" style="max-width:320px;">
+              <option value="">None - no announcement</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Ping Role</div>
+            <select id="event-role-select" style="max-width:320px;">
+              <option value="">No role ping</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-fill btn-sm" onclick="saveEventConfig()">Save Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <div style="font-size:0.78rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">Available Events</div>
+        <div class="ev-cooldown-label" id="ev-cd-label">Checking cooldown...</div>
+      </div>
+      <div class="ev-cooldown-bar" style="margin-bottom:1.25rem;"><div class="ev-cooldown-fill" id="ev-cd-fill" style="width:0%;"></div></div>
+      <div class="event-grid" id="event-grid"><div class="loading">Loading events...</div></div>
     </div>
 
     <div class="section" id="sec-actions">
@@ -1793,5 +1828,177 @@ async function devUnbanById(guildId) {
 }
 
 </script>
+
+<script>
+(function() {
+
+const EC_MS = 60 * 60 * 1000;
+let cdRemaining = 0;
+let cdTick = null;
+
+const EMETA = {
+    double_work:    { emoji: '💼', desc: 'All /work payouts are doubled for 30 minutes.',        dur: '30 min' },
+    double_daily:   { emoji: '🎁', desc: 'Daily rewards are doubled for 24 hours.',               dur: '24 hr'  },
+    crime_boost:    { emoji: '🔪', desc: 'Crime success rates +20% for 30 minutes.',              dur: '30 min' },
+    rob_boost:      { emoji: '🥷', desc: 'Rob success rates +25% for 30 minutes.',                dur: '30 min' },
+    gambling_boost: { emoji: '🎰', desc: 'All gambling payouts have a +10% bonus for 30 minutes.',dur: '30 min' },
+    fishing_boost:  { emoji: '🎣', desc: 'Fish catches shift toward rarer tiers for 30 minutes.', dur: '30 min' },
+    mining_boost:   { emoji: '⛏️', desc: 'Mining ore values doubled for 30 minutes.',             dur: '30 min' },
+    tax_holiday:    { emoji: '🏦', desc: 'All server taxes waived for 1 hour.',                   dur: '60 min' },
+    stock_surge:    { emoji: '📈', desc: 'All stocks tick upward 5-15% instantly.',               dur: 'Instant'},
+    stock_crash:    { emoji: '📉', desc: 'All stocks drop 10-25% instantly.',                     dur: 'Instant'},
+};
+
+async function loadEventConfig() {
+    try {
+        const [cfgR, chR, roR] = await Promise.all([
+            fetch('/api/event/config'),
+            fetch('/api/channels'),
+            fetch('/api/channels/roles'),
+        ]);
+        const cfg = await cfgR.json();
+        const chs = await chR.json();
+        const ros = await roR.json();
+
+        const chSel = document.getElementById('event-channel-select');
+        const roSel = document.getElementById('event-role-select');
+
+        if (chSel && Array.isArray(chs.channels)) {
+            chSel.innerHTML = '<option value="">None - no announcement</option>';
+            chs.channels.forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.id; o.textContent = '#' + c.name;
+                if (c.id === cfg.eventChannelId) o.selected = true;
+                chSel.appendChild(o);
+            });
+        }
+        if (roSel && Array.isArray(ros)) {
+            roSel.innerHTML = '<option value="">No role ping</option>';
+            ros.forEach(r => {
+                const o = document.createElement('option');
+                o.value = r.id; o.textContent = '@' + r.name;
+                if (r.id === cfg.eventRoleId) o.selected = true;
+                roSel.appendChild(o);
+            });
+        }
+    } catch(e) { console.error(e); }
+}
+
+window.saveEventConfig = async function() {
+    const chId = document.getElementById('event-channel-select')?.value || null;
+    const roId = document.getElementById('event-role-select')?.value || null;
+    try {
+        const r = await fetch('/api/event/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventChannelId: chId, eventRoleId: roId }),
+        });
+        const d = await r.json();
+        if (d.success) toast('Event settings saved.', 'success');
+        else toast('Failed to save.', 'error');
+    } catch { toast('Failed to save.', 'error'); }
+};
+
+function updateCDBar() {
+    const fill  = document.getElementById('ev-cd-fill');
+    const label = document.getElementById('ev-cd-label');
+    if (!fill || !label) return;
+    if (cdRemaining <= 0) {
+        fill.style.width = '100%';
+        fill.style.background = 'var(--green)';
+        label.textContent = 'Events ready';
+    } else {
+        const pct = ((EC_MS - cdRemaining) / EC_MS) * 100;
+        fill.style.width = pct + '%';
+        fill.style.background = 'var(--accent)';
+        const m = Math.floor(cdRemaining / 60000);
+        const s = Math.ceil((cdRemaining % 60000) / 1000);
+        label.textContent = 'Next event in ' + m + 'm ' + s + 's';
+    }
+}
+
+function renderGrid(onCD) {
+    const grid = document.getElementById('event-grid');
+    if (!grid) return;
+    const ids = ['double_work','double_daily','crime_boost','rob_boost','gambling_boost','fishing_boost','mining_boost','tax_holiday','stock_surge','stock_crash'];
+    grid.innerHTML = ids.map(id => {
+        const m = EMETA[id] || {};
+        return '<div class="event-card">' +
+            '<div class="event-card-head">' + (m.emoji||'') + ' ' + id.replace(/_/g,' ').replace(/\w/g,c=>c.toUpperCase()) + '</div>' +
+            '<div class="event-card-desc">' + (m.desc||'') + '</div>' +
+            '<div class="event-card-meta">' + (m.dur||'') + '</div>' +
+            '<button class="event-trigger-btn" onclick="triggerEvent(\'' + id + '\',this)" ' + (onCD ? 'disabled' : '') + '>' +
+            (onCD ? 'On Cooldown' : 'Start Event') + '</button>' +
+            '</div>';
+    }).join('');
+}
+
+async function loadCD() {
+    try {
+        const r = await fetch('/api/event/cooldown');
+        const d = await r.json();
+        cdRemaining = d.remaining || 0;
+        updateCDBar();
+        renderGrid(cdRemaining > 0);
+        if (cdRemaining > 0 && !cdTick) {
+            cdTick = setInterval(() => {
+                cdRemaining = Math.max(0, cdRemaining - 1000);
+                updateCDBar();
+                if (cdRemaining <= 0) { clearInterval(cdTick); cdTick = null; renderGrid(false); }
+            }, 1000);
+        }
+    } catch {}
+}
+
+window.triggerEvent = async function(eventId, btn) {
+    if (cdRemaining > 0) return;
+    btn.disabled = true;
+    btn.textContent = 'Starting...';
+    try {
+        const r = await fetch('/api/event/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId }),
+        });
+        const d = await r.json();
+        if (d.success) {
+            toast(d.event + ' started.', 'success');
+            cdRemaining = EC_MS;
+            updateCDBar();
+            renderGrid(true);
+            cdTick = setInterval(() => {
+                cdRemaining = Math.max(0, cdRemaining - 1000);
+                updateCDBar();
+                if (cdRemaining <= 0) { clearInterval(cdTick); cdTick = null; renderGrid(false); }
+            }, 1000);
+        } else {
+            toast(d.error || 'Failed to start event.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Start Event';
+        }
+    } catch {
+        toast('Failed to start event.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Start Event';
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const evSection = document.getElementById('sec-events');
+    if (evSection) {
+        const obs = new MutationObserver(() => {
+            if (evSection.style.display !== 'none' && evSection.offsetParent !== null) {
+                loadEventConfig();
+                loadCD();
+                obs.disconnect();
+            }
+        });
+        obs.observe(evSection, { attributes: true, attributeFilter: ['style'] });
+    }
+});
+
+})();
+</script>
+
 </body>
 </html>
