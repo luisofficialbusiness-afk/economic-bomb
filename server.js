@@ -208,20 +208,20 @@ app.post('/api/refresh-guilds', requireAuth, async (req, res) => {
 
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        const users = await User.find({ guildId });
+        const users = await User.find({}).lean();
+        const slaves = await Slave.find({ ownerId: { $ne: null } }).lean();
         const totalWallet = users.reduce((a, u) => a + (u.balance || 0), 0);
         const totalBank = users.reduce((a, u) => a + (u.bank || 0), 0);
         const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
         const richest = sorted[0];
         const brokest = sorted[sorted.length - 1];
-        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
         const totalDebt = slaves.reduce((a, s) => a + (s.debt || 0), 0);
         const totalSlaveEarned = slaves.reduce((a, s) => a + (s.totalEarned || 0), 0);
         const ownerCounts = {};
         for (const s of slaves) ownerCounts[s.ownerId] = (ownerCounts[s.ownerId] || 0) + 1;
         const topOwner = Object.entries(ownerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-
+        const guildId = req.session.guild?.id;
+        const stocks = guildId ? await Stock.find({ guildId }).lean() : [];
         res.json({
             totalPlayers: users.length,
             totalWallet: totalWallet.toFixed(2),
@@ -234,7 +234,8 @@ app.get('/api/stats', requireAuth, async (req, res) => {
             richestTotal: richest ? (richest.balance + richest.bank).toFixed(2) : '0.00',
             brokestId: brokest?.userId || null,
             avgBalance: users.length ? (totalWallet / users.length).toFixed(2) : '0.00',
-            topOwner
+            topOwner,
+            totalStocks: stocks.length,
         });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch stats' });
@@ -243,15 +244,15 @@ app.get('/api/stats', requireAuth, async (req, res) => {
 
 app.get('/api/leaderboard', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        const users = await User.find({ guildId }).sort({ balance: -1 }).limit(20);
-        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
+        const users = await User.find({}).sort({ balance: -1 }).limit(20).lean();
+        const slaves = await Slave.find({ ownerId: { $ne: null } }).lean();
         const slaveIds = new Set(slaves.map(s => s.userId));
         res.json(users.map(u => ({
             userId: u.userId,
             balance: u.balance,
             bank: u.bank,
             total: u.balance + u.bank,
+            prestige: u.prestige || 0,
             isEnslave: slaveIds.has(u.userId)
         })));
     } catch (err) {
@@ -261,8 +262,7 @@ app.get('/api/leaderboard', requireAuth, async (req, res) => {
 
 app.get('/api/slaves', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
+        const slaves = await Slave.find({ ownerId: { $ne: null } });
         res.json(slaves.map(s => ({
             userId: s.userId,
             ownerId: s.ownerId,
@@ -357,8 +357,7 @@ app.post('/api/action/jackpot', requireAuth, async (req, res) => {
     const { amount, userId } = req.body;
     if (!amount || !userId) return res.status(400).json({ error: 'Missing fields' });
     try {
-        const guildId = req.session.guild.id;
-        const user = await User.findOne({ userId, guildId });
+        const user = await User.findOne({ userId });
         if (!user) return res.status(404).json({ success: false, error: 'User not found' });
         user.balance += parseFloat(amount);
         await user.save();
@@ -372,8 +371,7 @@ app.post('/api/action/set-balance', requireAuth, async (req, res) => {
     const { userId, amount } = req.body;
     if (!userId || amount === undefined) return res.status(400).json({ error: 'Missing fields' });
     try {
-        const guildId = req.session.guild.id;
-        const user = await User.findOne({ userId, guildId });
+        const user = await User.findOne({ userId });
         if (!user) return res.status(404).json({ success: false, error: 'User not found' });
         user.balance = parseFloat(amount);
         await user.save();
@@ -387,8 +385,7 @@ app.post('/api/action/set-bank', requireAuth, async (req, res) => {
     const { userId, amount } = req.body;
     if (!userId || amount === undefined) return res.status(400).json({ error: 'Missing fields' });
     try {
-        const guildId = req.session.guild.id;
-        const user = await User.findOne({ userId, guildId });
+        const user = await User.findOne({ userId });
         if (!user) return res.status(404).json({ success: false, error: 'User not found' });
         user.bank = parseFloat(amount);
         await user.save();
@@ -402,6 +399,7 @@ app.post('/api/action/set-stock', requireAuth, async (req, res) => {
     const { ticker, price } = req.body;
     if (!ticker || price === undefined) return res.status(400).json({ error: 'Missing fields' });
     try {
+        const guildId = req.session.guild?.id;
         const stock = await Stock.findOne({ guildId, ticker: ticker.toUpperCase() });
         if (!stock) return res.json({ success: false, error: 'Stock not found' });
         stock.price = parseFloat(price);
@@ -437,9 +435,8 @@ app.post('/api/action/reset-cooldowns', requireAuth, (req, res) => {
 
 app.get('/api/health', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        const users = await User.find({ guildId });
-        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
+        const users = await User.find({}).lean();
+        const slaves = await Slave.find({ ownerId: { $ne: null } }).lean();
         const totalWallet = users.reduce((a, u) => a + (u.balance || 0), 0);
         const totalBank = users.reduce((a, u) => a + (u.bank || 0), 0);
         const totalCirculation = totalWallet + totalBank;
@@ -468,36 +465,30 @@ app.get('/api/health', requireAuth, async (req, res) => {
 });
 app.get('/api/anticheat', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        const users = await User.find({ guildId });
+        const MAX_BALANCE = 999_999_999_999_999;
+        const users = await User.find({}).lean();
         const flags = [];
-        const MAX_LEGIT = 500000;
 
         for (const u of users) {
-            const total = u.balance + u.bank;
-            if (total > MAX_LEGIT) {
-                flags.push({
-                    userId: u.userId,
-                    type: 'impossible_balance',
-                    label: 'Impossible Balance',
-                    detail: `$${total.toLocaleString()} — exceeds max possible earned`,
-                    severity: 'high',
-                    balance: u.balance,
-                    bank: u.bank
-                });
+            const total = (u.balance || 0) + (u.bank || 0);
+            if (total > MAX_BALANCE) {
+                flags.push({ userId: u.userId, type: 'max_balance', detail: `$${total.toLocaleString()} exceeds hard cap`, severity: 'high', balance: u.balance, bank: u.bank });
+                continue;
             }
-        }
-        for (const u of users) {
-            if (u.balance > 50000 && !flags.find(f => f.userId === u.userId)) {
-                flags.push({
-                    userId: u.userId,
-                    type: 'balance_spike',
-                    label: 'Balance Spike',
-                    detail: `$${u.balance.toLocaleString()} sitting in wallet`,
-                    severity: 'medium',
-                    balance: u.balance,
-                    bank: u.bank
-                });
+            if (isNaN(u.balance) || isNaN(u.bank)) {
+                flags.push({ userId: u.userId, type: 'nan_balance', detail: 'Balance or bank is NaN', severity: 'high', balance: u.balance, bank: u.bank });
+                continue;
+            }
+            if (u.balance < 0) {
+                flags.push({ userId: u.userId, type: 'negative_wallet', detail: `Wallet is $${u.balance.toLocaleString()}`, severity: 'high', balance: u.balance, bank: u.bank });
+                continue;
+            }
+            if (u.bank < 0) {
+                flags.push({ userId: u.userId, type: 'negative_bank', detail: `Bank is $${u.bank.toLocaleString()}`, severity: 'high', balance: u.balance, bank: u.bank });
+                continue;
+            }
+            if (total > 500_000_000_000) {
+                flags.push({ userId: u.userId, type: 'high_net_worth', detail: `$${total.toLocaleString()} net worth - verify legitimacy`, severity: 'medium', balance: u.balance, bank: u.bank });
             }
         }
 
@@ -574,8 +565,7 @@ app.post('/api/action/release-slave', requireAuth, async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
     try {
-        const guildId = req.session.guild.id;
-        await Slave.findOneAndUpdate({ userId, guildId }, { $set: { ownerId: null, debt: 0 } });
+        await Slave.findOneAndUpdate({ userId }, { $set: { ownerId: null, debt: 0 } });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
@@ -616,8 +606,7 @@ app.post('/api/action/seed-market', requireAuth, async (req, res) => {
 
 app.post('/api/action/wipe-slave-debt', requireAuth, async (req, res) => {
     try {
-        const guildId = req.session.guild.id;
-        await Slave.updateMany({ guildId }, { $set: { debt: 0, ownerId: null } });
+        await Slave.updateMany({}, { $set: { debt: 0, ownerId: null } });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
@@ -679,7 +668,6 @@ app.post('/api/switch-guild', requireAuth, (req, res) => {
     res.json({ success: true, guild: req.session.guild });
 });
 
-// Dev: all guilds bot is in
 app.get('/api/dev/guilds', requireDev, async (req, res) => {
     try {
         const botGuildRes = await fetch('https://discord.com/api/users/@me/guilds', {
@@ -687,15 +675,13 @@ app.get('/api/dev/guilds', requireDev, async (req, res) => {
         });
         const botGuilds = await botGuildRes.json();
         if (!Array.isArray(botGuilds)) return res.json([]);
-        // Attach player/slave counts
-        const results = await Promise.all(botGuilds.map(async g => {
-            const playerCount = await User.countDocuments({ guildId: g.id });
-            const slaveCount = await Slave.countDocuments({ guildId: g.id, ownerId: { $ne: null } });
-            return {
-                id: g.id, name: g.name,
-                icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
-                playerCount, slaveCount
-            };
+        const totalPlayers = await User.countDocuments();
+        const totalSlaves = await Slave.countDocuments({ ownerId: { $ne: null } });
+        const results = botGuilds.map(g => ({
+            id: g.id, name: g.name,
+            icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
+            playerCount: totalPlayers,
+            slaveCount: totalSlaves,
         }));
         res.json(results);
     } catch(err) {
@@ -704,17 +690,18 @@ app.get('/api/dev/guilds', requireDev, async (req, res) => {
     }
 });
 
-// Dev: economy stats for any guild by ID
 app.get('/api/dev/guild/:guildId/stats', requireDev, async (req, res) => {
     try {
         const guildId = req.params.guildId;
-        const users = await User.find({ guildId });
-        const slaves = await Slave.find({ guildId, ownerId: { $ne: null } });
-        const stocks = await Stock.find({ guildId });
+        const [users, slaves, stocks, config] = await Promise.all([
+            User.find({}).lean(),
+            Slave.find({ ownerId: { $ne: null } }).lean(),
+            Stock.find({ guildId }).lean(),
+            Config.findOne({ guildId }),
+        ]);
         const totalWallet = users.reduce((a, u) => a + (u.balance || 0), 0);
         const totalBank = users.reduce((a, u) => a + (u.bank || 0), 0);
         const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
-        const config = await Config.findOne({ guildId });
         res.json({
             guildId,
             playerCount: users.length,
@@ -734,21 +721,20 @@ app.get('/api/dev/guild/:guildId/stats', requireDev, async (req, res) => {
     }
 });
 
-// Dev: get any user's balance across any guild
 app.get('/api/dev/user/:userId', requireDev, async (req, res) => {
     try {
-        const users = await User.find({ userId: req.params.userId });
-        res.json(users.map(u => ({ guildId: u.guildId, balance: u.balance, bank: u.bank, lastWork: u.lastWork, dailyStreak: u.dailyStreak || 0 })));
+        const user = await User.findOne({ userId: req.params.userId }).lean();
+        if (!user) return res.json(null);
+        res.json({ userId: user.userId, balance: user.balance, bank: user.bank, prestige: user.prestige || 0, lastWork: user.lastWork, dailyStreak: user.dailyStreak || 0 });
     } catch(err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Dev: edit any user's balance in any guild
 app.post('/api/dev/user/:userId/edit', requireDev, async (req, res) => {
     try {
-        const { guildId, balance, bank } = req.body;
-        const user = await User.findOne({ userId: req.params.userId, guildId });
+        const { balance, bank } = req.body;
+        const user = await User.findOne({ userId: req.params.userId });
         if (!user) return res.json({ success: false, error: 'User not found' });
         if (balance !== undefined) user.balance = parseFloat(balance);
         if (bank !== undefined) user.bank = parseFloat(bank);
@@ -792,18 +778,16 @@ app.get('/api/dev/logs', requireDev, (req, res) => {
     res.json(errorLogs);
 });
 
-// Dev: reset economy for any guild
 app.post('/api/dev/guild/:guildId/reset', requireDev, async (req, res) => {
     try {
-        await User.updateMany({ guildId: req.params.guildId }, { $set: { balance: 0, bank: 0 } });
+        await User.updateMany({}, { $set: { balance: 0, bank: 0 } });
         res.json({ success: true });
     } catch(err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// Dev: wipe all slaves for any guild
 app.post('/api/dev/guild/:guildId/wipe-slaves', requireDev, async (req, res) => {
     try {
-        await Slave.updateMany({ guildId: req.params.guildId }, { $set: { ownerId: null, debt: 0 } });
+        await Slave.updateMany({}, { $set: { ownerId: null, debt: 0 } });
         res.json({ success: true });
     } catch(err) { res.status(500).json({ success: false, error: err.message }); }
 });
@@ -893,23 +877,23 @@ app.get('/api/dev/banned-servers', requireDev, async (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-// Dev: global stats across all guilds
 app.get('/api/dev/global-stats', requireDev, async (req, res) => {
     try {
-        const [userCount, slaveCount, stockCount, totalWalletAgg] = await Promise.all([
+        const [userCount, slaveCount, stockCount, totalWalletAgg, botGuildRes] = await Promise.all([
             User.countDocuments(),
             Slave.countDocuments({ ownerId: { $ne: null } }),
             Stock.countDocuments(),
-            User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }])
+            User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }]),
+            fetch('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` } })
         ]);
-        const guildIds = [...new Set((await User.distinct('guildId')))];
+        const botGuilds = await botGuildRes.json();
+        const guildCount = Array.isArray(botGuilds) ? botGuilds.length : 0;
         res.json({
             totalUsers: userCount,
             totalSlaves: slaveCount,
             totalStocks: stockCount,
-            totalGuilds: guildIds.length,
+            totalGuilds: guildCount,
             totalMoney: totalWalletAgg[0]?.total?.toFixed(2) || '0.00',
-            guildIds
         });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
@@ -928,30 +912,24 @@ app.get('/api/dev/crashed-markets', requireDev, async (req, res) => {
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-// Dev: detect broken economies (one player has >80% of all money)
 app.get('/api/dev/broken-economies', requireDev, async (req, res) => {
     try {
-        const guildIds = await User.distinct('guildId');
-        const broken = [];
-        for (const guildId of guildIds) {
-            const users = await User.find({ guildId });
-            if (users.length < 2) continue;
-            const total = users.reduce((a, u) => a + u.balance + u.bank, 0);
-            if (total === 0) continue;
-            const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
-            const topShare = (sorted[0].balance + sorted[0].bank) / total;
-            if (topShare > 0.8) {
-                broken.push({
-                    guildId,
-                    topUserId: sorted[0].userId,
-                    topTotal: (sorted[0].balance + sorted[0].bank).toFixed(2),
-                    sharePercent: (topShare * 100).toFixed(1),
-                    totalCirculation: total.toFixed(2),
-                    playerCount: users.length
-                });
-            }
+        const users = await User.find({}).lean();
+        if (users.length < 2) return res.json([]);
+        const total = users.reduce((a, u) => a + (u.balance || 0) + (u.bank || 0), 0);
+        if (total === 0) return res.json([]);
+        const sorted = [...users].sort((a, b) => (b.balance + b.bank) - (a.balance + a.bank));
+        const topShare = (sorted[0].balance + sorted[0].bank) / total;
+        if (topShare > 0.8) {
+            return res.json([{
+                topUserId: sorted[0].userId,
+                topTotal: (sorted[0].balance + sorted[0].bank).toFixed(2),
+                sharePercent: (topShare * 100).toFixed(1),
+                totalCirculation: total.toFixed(2),
+                playerCount: users.length
+            }]);
         }
-        res.json(broken);
+        res.json([]);
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -1080,7 +1058,7 @@ const { registerEventRoutes } = require('./event-routes');
 registerEventRoutes(app);
 
 const { registerVoteWebhook } = require('./vote-webhook');
-registerVoteWebhook(app, client);
+registerVoteWebhook(app);
 
 const { registerFixedRoutes } = require('./anticheat-routes');
 registerFixedRoutes(app);
