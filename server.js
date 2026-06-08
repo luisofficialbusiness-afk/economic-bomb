@@ -26,6 +26,14 @@ app.use(session({
     cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 }
 }));
 
+app.use((req, res, next) => {
+    if (process.env.MAINTENANCE !== 'true') return next();
+    if (req.path === '/maintenance.html') return next();
+    if (req.path.startsWith('/api/maint-check')) return next();
+    if (req.path.startsWith('/api/')) return res.status(503).json({ error: 'Maintenance' });
+    res.redirect('/maintenance.html');
+});
+
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:3000/auth/callback';
