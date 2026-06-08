@@ -255,40 +255,64 @@ nav {
 .up { color: var(--green); }
 .dn { color: var(--red); }
 
-.live-stats {
+.hof {
   padding: 6rem 2rem;
-  text-align: center;
   border-top: 1px solid var(--border);
 }
-.live-stats-label {
+.hof-inner { max-width: 960px; margin: 0 auto; }
+.hof-label {
   font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--muted);
-  margin-bottom: 1.25rem;
-}
-.live-stats h2 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 600; letter-spacing: -0.04em;
   margin-bottom: 0.75rem;
 }
-.live-stats p { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; }
-.live-stat-grid {
-  display: inline-flex; gap: 0;
+.hof h2 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-weight: 600; letter-spacing: -0.04em;
+  margin-bottom: 0.5rem;
+}
+.hof-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 3rem; }
+.hof-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--border);
   border: 1px solid var(--border);
-  border-radius: 10px; overflow: hidden;
+  border-radius: 12px;
+  overflow: hidden;
   margin-bottom: 2.5rem;
 }
-.live-stat-block {
-  padding: 1.25rem 2rem; text-align: center;
-  border-right: 1px solid var(--border);
-  min-width: 140px;
+.hof-section {
+  background: var(--surface);
+  padding: 1.5rem;
 }
-.live-stat-block:last-child { border-right: none; }
-.lsn {
+.hof-section-title {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.hof-entry {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.hof-entry:last-child { border-bottom: none; }
+.hof-avatar {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--subtle); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; color: var(--muted);
   font-family: 'DM Mono', monospace;
-  font-size: 1.6rem; font-weight: 500;
-  display: block; color: var(--accent);
 }
-.lsl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+.hof-avatar.dev { background: var(--accent-dim); color: var(--accent); }
+.hof-avatar.partner { background: rgba(96,165,250,0.12); color: var(--blue); }
+.hof-avatar.fame { background: rgba(234,179,8,0.18); color: var(--accent); }
+.hof-name { font-size: 0.88rem; font-weight: 600; }
+.hof-role { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+.hof-empty {
+  font-size: 0.82rem; color: var(--subtle);
+  font-style: italic; padding: 0.5rem 0;
+}
 
 footer {
   padding: 2rem;
@@ -332,7 +356,7 @@ footer {
 <section class="hero">
   <div class="hero-eyebrow">
     <span class="eyebrow-dot"></span>
-    Now Live
+    Launching June 15, 2026
   </div>
   <h1>The Discord bot that<br/><em>blows up</em> your economy</h1>
   <p>Stock market, slave system, gambling, seasonal resets — all in one bot. Built for competitive servers.</p>
@@ -389,43 +413,44 @@ footer {
 
 <div class="cmd-preview" id="commands">
   <div class="section-label">Commands</div>
-  <div class="section-title">Prefix: <span style="color:var(--accent);font-family:'DM Mono',monospace">?</span></div>
+  <div class="section-title">Slash commands. Type <span style="color:var(--accent);font-family:'DM Mono',monospace">/</span> to get started.</div>
   <div class="cmd-grid">
     <div class="cmd-group">
       <div class="cmd-group-title">Economy</div>
-      <div class="cmd-row"><span class="cmd-name">?balance</span><span class="cmd-info">Check wallet & bank</span></div>
-      <div class="cmd-row"><span class="cmd-name">?work</span><span class="cmd-info">Earn $25–$100 (5min cd)</span></div>
-      <div class="cmd-row"><span class="cmd-name">?deposit [amt]</span><span class="cmd-info">Move cash to bank</span></div>
-      <div class="cmd-row"><span class="cmd-name">?withdraw [amt]</span><span class="cmd-info">Pull cash from bank</span></div>
-      <div class="cmd-row"><span class="cmd-name">?give @user [amt]</span><span class="cmd-info">Send money to someone</span></div>
-      <div class="cmd-row"><span class="cmd-name">?rob @user</span><span class="cmd-info">Steal from their wallet</span></div>
+      <div class="cmd-row"><span class="cmd-name">/balance</span><span class="cmd-info">Check wallet & bank</span></div>
+      <div class="cmd-row"><span class="cmd-name">/work</span><span class="cmd-info">Earn money (cooldown)</span></div>
+      <div class="cmd-row"><span class="cmd-name">/bank deposit [amt]</span><span class="cmd-info">Move cash to bank</span></div>
+      <div class="cmd-row"><span class="cmd-name">/rob @user</span><span class="cmd-info">Steal from their wallet</span></div>
+      <div class="cmd-row"><span class="cmd-name">/crime</span><span class="cmd-info">Commit a crime for cash</span></div>
+      <div class="cmd-row"><span class="cmd-name">/hitman @user</span><span class="cmd-info">Hire an operative</span></div>
     </div>
     <div class="cmd-group">
-      <div class="cmd-group-title">Stocks</div>
-      <div class="cmd-row"><span class="cmd-name">?stocks</span><span class="cmd-info">View the live market</span></div>
-      <div class="cmd-row"><span class="cmd-name">?buystock [T] [n]</span><span class="cmd-info">Buy shares</span></div>
-      <div class="cmd-row"><span class="cmd-name">?sellstock [T] [n]</span><span class="cmd-info">Sell shares</span></div>
-      <div class="cmd-row"><span class="cmd-name">?portfolio</span><span class="cmd-info">View holdings & P&L</span></div>
-      <div class="cmd-row"><span class="cmd-name">?stockhistory [T]</span><span class="cmd-info">Last 10 price points</span></div>
+      <div class="cmd-group-title">Stocks & Investing</div>
+      <div class="cmd-row"><span class="cmd-name">/stock list</span><span class="cmd-info">View the live market</span></div>
+      <div class="cmd-row"><span class="cmd-name">/stock buy [T] [n]</span><span class="cmd-info">Buy shares</span></div>
+      <div class="cmd-row"><span class="cmd-name">/stock sell [T] [n]</span><span class="cmd-info">Sell shares</span></div>
+      <div class="cmd-row"><span class="cmd-name">/stock portfolio</span><span class="cmd-info">View holdings & P&L</span></div>
+      <div class="cmd-row"><span class="cmd-name">/dividends collect</span><span class="cmd-info">Collect daily dividends</span></div>
     </div>
     <div class="cmd-group">
       <div class="cmd-group-title">Gambling</div>
-      <div class="cmd-row"><span class="cmd-name">?coinflip [bet]</span><span class="cmd-info">Heads or tails</span></div>
-      <div class="cmd-row"><span class="cmd-name">?slots [bet]</span><span class="cmd-info">Spin the machine</span></div>
-      <div class="cmd-row"><span class="cmd-name">?dice [bet]</span><span class="cmd-info">Roll against the bot</span></div>
-      <div class="cmd-row"><span class="cmd-name">?duel @user</span><span class="cmd-info">Challenge someone</span></div>
+      <div class="cmd-row"><span class="cmd-name">/gamble coinflip</span><span class="cmd-info">Heads or tails</span></div>
+      <div class="cmd-row"><span class="cmd-name">/gamble slots</span><span class="cmd-info">Spin the machine</span></div>
+      <div class="cmd-row"><span class="cmd-name">/gamble blackjack</span><span class="cmd-info">Play against the dealer</span></div>
+      <div class="cmd-row"><span class="cmd-name">/gamble crash</span><span class="cmd-info">Cash out before it crashes</span></div>
+      <div class="cmd-row"><span class="cmd-name">/duel @user</span><span class="cmd-info">Challenge someone</span></div>
     </div>
     <div class="cmd-group">
       <div class="cmd-group-title">Slave System</div>
-      <div class="cmd-row"><span class="cmd-name">?buy @user</span><span class="cmd-info">Purchase a player</span></div>
-      <div class="cmd-row"><span class="cmd-name">?outbid [amt]</span><span class="cmd-info">Escape a purchase attempt</span></div>
-      <div class="cmd-row"><span class="cmd-name">?slave</span><span class="cmd-info">Check your debt status</span></div>
-      <div class="cmd-row"><span class="cmd-name">?slavepanel</span><span class="cmd-info">Manage your slaves</span></div>
-      <div class="cmd-row"><span class="cmd-name">?slavelist</span><span class="cmd-info">Owner leaderboard</span></div>
+      <div class="cmd-row"><span class="cmd-name">/slave buy @user</span><span class="cmd-info">Purchase a player</span></div>
+      <div class="cmd-row"><span class="cmd-name">/slave outbid</span><span class="cmd-info">Escape a purchase attempt</span></div>
+      <div class="cmd-row"><span class="cmd-name">/slave status</span><span class="cmd-info">Check your debt status</span></div>
+      <div class="cmd-row"><span class="cmd-name">/slave panel</span><span class="cmd-info">Manage your slaves</span></div>
+      <div class="cmd-row"><span class="cmd-name">/will set @user</span><span class="cmd-info">Designate an heir</span></div>
     </div>
   </div>
   <div style="margin-top:1.5rem;text-align:center;">
-    <a href="commands.html" class="btn btn-outline">View full docs →</a>
+    <a href="commands.html" class="btn btn-outline">View full docs</a>
   </div>
 </div>
 
@@ -460,52 +485,53 @@ footer {
   </div>
 </div>
 
-<section class="live-stats">
-  <div class="live-stats-label">Live Network</div>
-  <h2>Economic Bomb is live.</h2>
-  <p>Real numbers. Updated every 60 seconds.</p>
-  <div class="live-stat-grid">
-    <div class="live-stat-block"><span class="lsn" id="ls-servers">--</span><div class="lsl">Servers</div></div>
-    <div class="live-stat-block"><span class="lsn" id="ls-players">--</span><div class="lsl">Players</div></div>
-    <div class="live-stat-block"><span class="lsn" id="ls-slaves">--</span><div class="lsl">Active Slaves</div></div>
-    <div class="live-stat-block"><span class="lsn" id="ls-money">--</span><div class="lsl">In Circulation</div></div>
-  </div>
-  <div class="hero-actions" style="justify-content:center;">
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="btn btn-fill">Add to Discord</a>
-    <a href="https://discord.gg/BBSNXVrHyX" class="btn btn-outline">Support Server</a>
+<section class="hof">
+  <div class="hof-inner">
+    <div class="hof-label">The People Behind It</div>
+    <h2>Hall of Fame</h2>
+    <p class="hof-sub">The developers, partners, and legends that shaped Economic Bomb.</p>
+    <div class="hof-sections">
+
+      <div class="hof-section">
+        <div class="hof-section-title">Developers</div>
+        <div class="hof-entry">
+          <div class="hof-avatar dev">RV</div>
+          <div>
+            <div class="hof-name">RVEPRTY</div>
+            <div class="hof-role">Lead Developer</div>
+          </div>
+        </div>
+        <div class="hof-entry">
+          <div class="hof-avatar dev">BB</div>
+          <div>
+            <div class="hof-name">Bubbo</div>
+            <div class="hof-role">Developer</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hof-section">
+        <div class="hof-section-title">Partners</div>
+        <div class="hof-empty">No partners yet.</div>
+      </div>
+
+      <div class="hof-section">
+        <div class="hof-section-title">Hall of Famers</div>
+        <div class="hof-entry">
+          <div class="hof-avatar fame">?</div>
+          <div>
+            <div class="hof-name">mini_worthy4</div>
+            <div class="hof-role">Verified the bot for us</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero-actions" style="justify-content:center;">
+      <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands" class="btn btn-fill">Add to Discord</a>
+      <a href="https://discord.gg/BBSNXVrHyX" class="btn btn-outline">Support Server</a>
+    </div>
   </div>
 </section>
-
-<footer>
-  <div class="footer-logo"><img src="economicbomb.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:0.4rem;border-radius:4px;"> Economic<span> Bomb</span></div>
-  <div class="footer-links">
-    <a href="#features">Features</a>
-    <a href="commands.html">Commands</a>
-    <a href="https://discord.com/oauth2/authorize?client_id=1497674552900321371&permissions=8&response_type=code&redirect_uri=http%3A%2F%2Feconomicbomb.nrglearning.xyz%2Fauth%2Fcallback&integration_type=0&scope=identify+guilds+bot+applications.commands">Invite</a>
-    <a href="https://discord.gg/BBSNXVrHyX">Support</a>
-  </div>
-  <div class="footer-copy">© 2026 Economic Bomb</div>
-</footer>
-
-<script>
-async function loadLiveStats() {
-  try {
-    const r = await fetch('/api/public/stats');
-    const d = await r.json();
-    const fmt = n => {
-      if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
-      if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-      if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
-      return String(n);
-    };
-    document.getElementById('ls-servers').textContent = fmt(d.totalGuilds ?? 0);
-    document.getElementById('ls-players').textContent = fmt(d.totalUsers ?? 0);
-    document.getElementById('ls-slaves').textContent  = fmt(d.totalSlaves ?? 0);
-    document.getElementById('ls-money').textContent   = '$' + fmt(Math.round(parseFloat(d.totalMoney ?? 0)));
-  } catch {}
-}
-loadLiveStats();
-setInterval(loadLiveStats, 60000);
-</script>
 </body>
 </html>
