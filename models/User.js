@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    userId:              String,
-    guildId:             String,
+    userId:              { type: String, unique: true },
     balance:             { type: Number, default: 0 },
     bank:                { type: Number, default: 0 },
     lastWork:            { type: Number, default: 0 },
