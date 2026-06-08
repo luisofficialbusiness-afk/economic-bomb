@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const mongoose = require('mongoose');
 
 const voteSchema = new mongoose.Schema({
@@ -14,8 +15,32 @@ const VoteModel = mongoose.models.Vote || mongoose.model('Vote', voteSchema);
 
 const VOTE_COOLDOWN = 12 * 60 * 60 * 1000;
 const STREAK_WINDOW = 36 * 60 * 60 * 1000;
+const STREAK_MILESTONES = { 10: 15000, 25: 40000, 50: 100000, 75: 200000, 100: 500000 };
 
-function registerVoteWebhook(app, client) {
+async function sendDM(userId, embed) {
+    try {
+        const channelRes = await fetch('https://discord.com/api/v10/users/@me/channels', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bot ${process.env.BOT_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ recipient_id: userId }),
+        });
+        const channel = await channelRes.json();
+        if (!channel.id) return;
+        await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bot ${process.env.BOT_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ embeds: [embed] }),
+        });
+    } catch {}
+}
+
+function registerVoteWebhook(app) {
 
     app.post('/api/vote/webhook', async (req, res) => {
         const auth = req.headers.authorization;
@@ -33,31 +58,19 @@ function registerVoteWebhook(app, client) {
             let vd = await VoteModel.findOne({ userId });
             if (!vd) vd = new VoteModel({ userId });
 
-            const withinStreakWindow = vd.lastVoted && (now - vd.lastVoted) < STREAK_WINDOW;
             const onCooldown = vd.lastVoted && (now - vd.lastVoted) < VOTE_COOLDOWN;
-
             if (onCooldown) return;
 
+            const withinStreakWindow = vd.lastVoted && (now - vd.lastVoted) < STREAK_WINDOW;
             vd.totalVotes += 1;
             vd.voteStreak = withinStreakWindow ? vd.voteStreak + 1 : 1;
             vd.lastVoted = now;
             vd.tier = vd.totalVotes;
             await vd.save();
 
-            const streakMilestones = { 10: 15000, 25: 40000, 50: 100000, 75: 200000, 100: 500000 };
-            const streakBonus = streakMilestones[vd.voteStreak] || null;
-
-            let dmLines = [
-                `Your vote has been registered. You are now **Tier ${vd.tier}**.`,
-                `Total votes: **${vd.totalVotes}** - Streak: **${vd.voteStreak}**`,
-                '',
-                'Use **/vote claim** to collect your rewards.',
-            ];
+            const streakBonus = STREAK_MILESTONES[vd.voteStreak] || null;
 
             if (streakBonus) {
-                dmLines.push('');
-                dmLines.push(`**${vd.voteStreak} Vote Streak Bonus** - $${streakBonus.toLocaleString()} added to your account.`);
-
                 try {
                     const User = require('./models/User');
                     const user = await User.findOne({ userId });
@@ -68,20 +81,27 @@ function registerVoteWebhook(app, client) {
                 } catch {}
             }
 
-            try {
-                const discordUser = await client.users.fetch(userId);
-                await discordUser.send({
-                    embeds: [{
-                        title: '🗳️ Vote Received',
-                        description: dmLines.join('\n'),
-                        color: 0xFFD700,
-                        footer: { text: 'Economic Bomb - Vote Battlepass' },
-                    }]
-                });
-            } catch {}
+            const dmLines = [
+                `Your vote has been registered. You are now **Tier ${vd.tier}**.`,
+                `Total votes: **${vd.totalVotes}** - Streak: **${vd.voteStreak}**`,
+                '',
+                'Use **/vote claim** in Discord to collect your rewards.',
+            ];
+
+            if (streakBonus) {
+                dmLines.push('');
+                dmLines.push(`**${vd.voteStreak} Vote Streak Bonus** - $${streakBonus.toLocaleString()} added to your account.`);
+            }
+
+            await sendDM(userId, {
+                title: '🗳️ Vote Received',
+                description: dmLines.join('\n'),
+                color: 0xFFD700,
+                footer: { text: 'Economic Bomb - Vote Battlepass' },
+            });
 
         } catch (err) {
-            console.error('Vote webhook processing error:', err);
+            console.error('Vote webhook error:', err);
         }
     });
 }
