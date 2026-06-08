@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Commands — Economic Bomb</title>
+<title>Commands - Economic Bomb</title>
 <link rel="icon" type="image/png" href="economicbomb.webp">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -129,7 +129,7 @@ nav {
 
 <div class="page-top">
   <h1>Commands</h1>
-  <p>All commands use the <code style="font-family:'DM Mono',monospace;color:var(--accent)">?</code> prefix. Slash commands also available.</p>
+  <p>All commands are slash commands. Type <code style="font-family:'DM Mono',monospace;color:var(--accent)">/</code> in Discord to get started.</p>
   <div class="search">
     <span style="color:var(--muted);font-size:0.85rem;">⌕</span>
     <input type="text" id="search" placeholder="Search commands..."/>
@@ -140,9 +140,11 @@ nav {
   <aside class="sidebar">
     <div class="sb-label">Categories</div>
     <a class="sb-link active" href="#economy">Economy</a>
+    <a class="sb-link" href="#activities">Activities</a>
     <a class="sb-link" href="#gambling">Gambling</a>
     <a class="sb-link" href="#stocks">Stocks</a>
     <a class="sb-link" href="#slave">Slave System</a>
+    <a class="sb-link" href="#pvp">PvP</a>
     <a class="sb-link" href="#boards">Leaderboards</a>
     <a class="sb-link" href="#seasons">Seasons</a>
     <a class="sb-link" href="#owner">Owner Only</a>
@@ -154,52 +156,103 @@ nav {
       <div class="sec-header">
         <span class="sec-icon"></span>
         <span class="sec-name">Economy</span>
-        <span class="sec-count">6 commands</span>
+        <span class="sec-count">9 commands</span>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?balance</span><span class="alias">?bal</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/balance</span></div>
         <div class="cmd-desc">Check your wallet and bank balance.</div>
-        <div class="cmd-usage"><span class="p">?</span>balance</div>
+        <div class="cmd-usage"><span class="p">/</span>balance</div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?work</span><span class="badge b-cd">5 min cooldown</span></div>
-        <div class="cmd-desc">Earn money. If enslaved, all earnings go to your owner and reduce your debt.</div>
-        <div class="cmd-usage"><span class="p">?</span>work</div>
+        <div class="cmd-head"><span class="cmd-tag">/work</span><span class="badge b-cd">Cooldown</span></div>
+        <div class="cmd-desc">Earn money based on your job tier. Apply for better jobs with <code style="font-family:'DM Mono',monospace">/work jobs</code>. Enslaved users have all earnings routed to their owner.</div>
+        <div class="cmd-usage"><span class="p">/</span>work</div>
         <div class="notes">
-          <div class="note">Earns $25–$100 per use</div>
-          <div class="note">Enslaved users: earnings route to owner automatically</div>
+          <div class="note">9 job tiers from Intern to Board of Directors</div>
+          <div class="note">Higher tiers multiply your base payout</div>
+          <div class="note">Enslaved users: all earnings reduce your debt</div>
         </div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?deposit</span><span class="alias">?dep</span></div>
-        <div class="cmd-desc">Move cash from your wallet into your bank.</div>
-        <div class="cmd-usage"><span class="p">?</span>deposit <span class="a">[amount]</span> <span class="o">| all</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/bank</span></div>
+        <div class="cmd-desc">Manage your bank account. Use subcommands to check balance, deposit, or withdraw.</div>
+        <div class="cmd-usage"><span class="p">/</span>bank <span class="a">balance | deposit [amount] | withdraw [amount]</span></div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?withdraw</span><span class="alias">?with</span></div>
-        <div class="cmd-desc">Withdraw from your bank back into your wallet.</div>
-        <div class="cmd-usage"><span class="p">?</span>withdraw <span class="a">[amount]</span> <span class="o">| all</span></div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?givemoney</span><span class="alias">?give</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/give</span></div>
         <div class="cmd-desc">Transfer money from your wallet to another player.</div>
-        <div class="cmd-usage"><span class="p">?</span>give <span class="a">@user [amount]</span></div>
+        <div class="cmd-usage"><span class="p">/</span>give <span class="a">@user [amount]</span></div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?rob</span><span class="badge b-cd">10 min cooldown</span><span class="badge b-dmg">Risk</span></div>
-        <div class="cmd-desc">Attempt to steal from another player's wallet. Getting caught costs you money.</div>
-        <div class="cmd-usage"><span class="p">?</span>rob <span class="a">@user</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/daily</span><span class="badge b-cd">24 hr cooldown</span></div>
+        <div class="cmd-desc">Claim your daily reward. Streak bonuses increase payouts the longer you claim consecutively.</div>
+        <div class="cmd-usage"><span class="p">/</span>daily</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/beg</span><span class="badge b-cd">Cooldown</span></div>
+        <div class="cmd-desc">Beg for a small amount of cash. Low risk, low reward.</div>
+        <div class="cmd-usage"><span class="p">/</span>beg</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/search</span><span class="badge b-cd">Cooldown</span></div>
+        <div class="cmd-desc">Search a location for loose cash. Different locations have different payout ranges.</div>
+        <div class="cmd-usage"><span class="p">/</span>search</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/crime</span><span class="badge b-cd">Cooldown</span><span class="badge b-dmg">Risk</span></div>
+        <div class="cmd-desc">Commit a crime for a big payout. High risk - getting caught results in a fine.</div>
+        <div class="cmd-usage"><span class="p">/</span>crime</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/profile</span></div>
+        <div class="cmd-desc">View your full economy profile - balance, prestige, job, stats, and inventory summary.</div>
+        <div class="cmd-usage"><span class="p">/</span>profile <span class="o">[@user]</span></div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="activities">
+      <div class="sec-header">
+        <span class="sec-icon"></span>
+        <span class="sec-name">Activities</span>
+        <span class="sec-count">3 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/fish</span><span class="badge b-cd">30 min cooldown</span></div>
+        <div class="cmd-desc">Cast your line and catch fish to sell for profit. Requires a fishing rod. Better rods unlock rarer catches. Sell your bucket with <code style="font-family:'DM Mono',monospace">/fish sell</code>.</div>
+        <div class="cmd-usage"><span class="p">/</span>fish <span class="a">cast | sell | bucket | catalog</span></div>
         <div class="notes">
-          <div class="note">Target needs at least $50 in wallet</div>
-          <div class="note">Base success: 60%, scales down with target's wealth</div>
-          <div class="note">If caught: lose 15% of your balance (min $200)</div>
+          <div class="note">5 rod tiers - Wooden to Legendary</div>
+          <div class="note">30+ catchable items across 6 rarity tiers</div>
+          <div class="note">Monster tier includes Blue Whale ($280,000)</div>
+          <div class="note">Rods have durability - they break with use</div>
         </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/mine</span><span class="badge b-cd">30 min cooldown</span></div>
+        <div class="cmd-desc">Mine ore and sell it for profit. Requires a pickaxe. Higher tier pickaxes unlock deeper mines with rarer ore.</div>
+        <div class="cmd-usage"><span class="p">/</span>mine <span class="a">mine | pickaxe</span></div>
+        <div class="notes">
+          <div class="note">5 mine locations - Surface to Netherite Core</div>
+          <div class="note">Cave-in risk on deeper mines</div>
+          <div class="note">Diamond ore worth up to $12,000</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/shop</span></div>
+        <div class="cmd-desc">Browse, buy, and sell items. Gear up with rods, pickaxes, bait, and consumables.</div>
+        <div class="cmd-usage"><span class="p">/</span>shop <span class="a">browse | buy [item] | sell [item]</span></div>
       </div>
     </div>
 
@@ -207,35 +260,31 @@ nav {
       <div class="sec-header">
         <span class="sec-icon"></span>
         <span class="sec-name">Gambling</span>
-        <span class="sec-count">4 commands</span>
+        <span class="sec-count">3 commands</span>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?coinflip</span><span class="alias">?cf</span><span class="badge b-cd">5 min cooldown</span></div>
-        <div class="cmd-desc">Bet on heads or tails. Win 2× your bet or lose it.</div>
-        <div class="cmd-usage"><span class="p">?</span>coinflip <span class="a">[bet] [heads|tails]</span></div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?slots</span><span class="badge b-cd">5 min cooldown</span></div>
-        <div class="cmd-desc">Spin the slot machine. Match symbols to multiply your bet.</div>
-        <div class="cmd-usage"><span class="p">?</span>slots <span class="a">[bet]</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/gamble</span><span class="badge b-cd">Cooldown</span></div>
+        <div class="cmd-desc">10 gambling modes in one command. Each mode has its own risk and payout structure.</div>
+        <div class="cmd-usage"><span class="p">/</span>gamble <span class="a">coinflip | slots | dice | blackjack | roulette | highlow | crash | horserace | mines | baccarat</span></div>
         <div class="notes">
-          <div class="note">2 matching: 2× bet</div>
-          <div class="note">3 matching: 5× bet (jackpot)</div>
+          <div class="note">Coinflip: 2x your bet or lose it</div>
+          <div class="note">Crash: cash out before the multiplier collapses</div>
+          <div class="note">Mines: reveal tiles without hitting a mine</div>
+          <div class="note">Blackjack: beat the dealer without going over 21</div>
         </div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?dice</span><span class="badge b-cd">5 min cooldown</span></div>
-        <div class="cmd-desc">Roll against the bot. Higher roll wins double. Tie refunds your bet.</div>
-        <div class="cmd-usage"><span class="p">?</span>dice <span class="a">[bet]</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/duel</span><span class="badge b-dmg">Risk</span></div>
+        <div class="cmd-desc">Challenge another player to a duel. Winner takes the pot.</div>
+        <div class="cmd-usage"><span class="p">/</span>duel <span class="a">@user [bet]</span></div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?duel</span></div>
-        <div class="cmd-desc">Challenge another player. Winner decided randomly.</div>
-        <div class="cmd-usage"><span class="p">?</span>duel <span class="a">@user</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/lottery</span></div>
+        <div class="cmd-desc">Buy tickets for the server lottery draw. Jackpot grows with each ticket sold.</div>
+        <div class="cmd-usage"><span class="p">/</span>lottery <span class="a">buy [tickets] | info</span></div>
       </div>
     </div>
 
@@ -243,38 +292,29 @@ nav {
       <div class="sec-header">
         <span class="sec-icon"></span>
         <span class="sec-name">Stock Market</span>
-        <span class="sec-count">5 commands</span>
+        <span class="sec-count">2 commands</span>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?stocks</span></div>
-        <div class="cmd-desc">View all 15 companies with current prices and recent % change. Prices update every 30 minutes.</div>
-        <div class="cmd-usage"><span class="p">?</span>stocks</div>
+        <div class="cmd-head"><span class="cmd-tag">/stock</span></div>
+        <div class="cmd-desc">Full stock market access in one command. 15 companies, prices shift every 30 minutes. Buying increases price slightly, selling decreases it.</div>
+        <div class="cmd-usage"><span class="p">/</span>stock <span class="a">list | buy [ticker] [shares] | sell [ticker] [shares] | portfolio | history [ticker]</span></div>
+        <div class="notes">
+          <div class="note">Example: /stock buy NRGX 10</div>
+          <div class="note">Portfolio shows current value and total gain or loss</div>
+          <div class="note">History shows last 10 price points with trend indicators</div>
+        </div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?buystock</span></div>
-        <div class="cmd-desc">Buy shares of a company. Buying pushes the price up slightly.</div>
-        <div class="cmd-usage"><span class="p">?</span>buystock <span class="a">[TICKER] [shares]</span></div>
-        <div class="notes"><div class="note">Example: ?buystock TGLC 10</div></div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?sellstock</span></div>
-        <div class="cmd-desc">Sell shares from your portfolio. Selling pushes the price down slightly.</div>
-        <div class="cmd-usage"><span class="p">?</span>sellstock <span class="a">[TICKER] [shares]</span></div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?portfolio</span><span class="alias">?port</span></div>
-        <div class="cmd-desc">View your holdings, current value, and total profit or loss.</div>
-        <div class="cmd-usage"><span class="p">?</span>portfolio</div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?stockhistory</span><span class="alias">?sh</span></div>
-        <div class="cmd-desc">See the last 10 price points for a stock with trend indicators.</div>
-        <div class="cmd-usage"><span class="p">?</span>stockhistory <span class="a">[TICKER]</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/dividends</span></div>
+        <div class="cmd-desc">Collect passive daily income from your stock holdings. 2% of share price per share per day. Minimum 5 shares per stock to qualify.</div>
+        <div class="cmd-usage"><span class="p">/</span>dividends <span class="a">collect | preview | rates</span></div>
+        <div class="notes">
+          <div class="note">Preview shows pending payout before you commit</div>
+          <div class="note">Rates shows the full market payout table</div>
+          <div class="note">24-hour cooldown</div>
+        </div>
       </div>
     </div>
 
@@ -282,47 +322,60 @@ nav {
       <div class="sec-header">
         <span class="sec-icon"></span>
         <span class="sec-name">Slave System</span>
-        <span class="sec-count">5 commands</span>
+        <span class="sec-count">1 command</span>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?buy</span><span class="badge b-dmg">High Stakes</span></div>
-        <div class="cmd-desc">Purchase another player. The price is 2× their current wallet balance. The target has 2 minutes to outbid you — if they don't, they're yours.</div>
-        <div class="cmd-usage"><span class="p">?</span>buy <span class="a">@user</span></div>
+        <div class="cmd-head"><span class="cmd-tag">/slave</span><span class="badge b-dmg">High Stakes</span></div>
+        <div class="cmd-desc">Full slave system in one command. Purchase players, manage your empire, and check your own status. The price is 2x the target's wallet balance. They have 2 minutes to outbid — if they don't, they're yours. All their work earnings route to you until their debt is cleared.</div>
+        <div class="cmd-usage"><span class="p">/</span>slave <span class="a">buy @user | outbid [amount] | status | panel | list | sell @user</span></div>
         <div class="notes">
-          <div class="note">Buy price = target's balance × 2</div>
-          <div class="note">Once bought, all their ?work earnings go to you</div>
-          <div class="note">They must earn 2× the buy price to be freed</div>
+          <div class="note">Buy price = target wallet x 2</div>
+          <div class="note">Debt = 2x buy price - all work earnings reduce it</div>
+          <div class="note">Panel: free, renew (double debt for half cost), or view stats</div>
+          <div class="note">Outbid window is 2 minutes from the buy attempt</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-section" id="pvp">
+      <div class="sec-header">
+        <span class="sec-icon"></span>
+        <span class="sec-name">PvP</span>
+        <span class="sec-count">3 commands</span>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/rob</span><span class="badge b-cd">Cooldown</span><span class="badge b-dmg">Risk</span></div>
+        <div class="cmd-desc">Attempt to steal from another player's wallet. Getting caught costs you money.</div>
+        <div class="cmd-usage"><span class="p">/</span>rob <span class="a">@user</span></div>
+        <div class="notes">
+          <div class="note">Target needs at least $50 in wallet</div>
+          <div class="note">If caught: lose 15% of your balance</div>
         </div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?outbid</span></div>
-        <div class="cmd-desc">Use within 2 minutes of a buy attempt to escape. You must offer more than the buy price.</div>
-        <div class="cmd-usage"><span class="p">?</span>outbid <span class="a">[amount]</span></div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?slave</span></div>
-        <div class="cmd-desc">Check your slave status — who owns you, remaining debt, and total earned for your owner.</div>
-        <div class="cmd-usage"><span class="p">?</span>slave</div>
-      </div>
-
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?slavepanel</span></div>
-        <div class="cmd-desc">Owner panel to manage your slaves. Shows stats with buttons to free, renew, or refresh.</div>
-        <div class="cmd-usage"><span class="p">?</span>slavepanel</div>
+        <div class="cmd-head"><span class="cmd-tag">/hitman</span><span class="badge b-cd">30 min cooldown</span><span class="badge b-dmg">Risk</span></div>
+        <div class="cmd-desc">Hire an operative to sabotage another player. Choose your tier - higher tiers cost more but succeed more often. On success the operative seizes funds, destroys their daily streak, or wipes their work cooldown. On failure you take blowback damage.</div>
+        <div class="cmd-usage"><span class="p">/</span>hitman <span class="a">@user [tier]</span></div>
         <div class="notes">
-          <div class="note">Set Free — release immediately at no cost</div>
-          <div class="note">Renew — pay half their current debt to double it</div>
-          <div class="note">Refresh — pull updated stats</div>
+          <div class="note">Street Thug: $5,000 - 35% success</div>
+          <div class="note">Enforcer: $25,000 - 55% success</div>
+          <div class="note">Professional: $100,000 - 72% success</div>
+          <div class="note">Ghost Operative: $500,000 - 88% success</div>
         </div>
       </div>
 
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?slavelist</span></div>
-        <div class="cmd-desc">Leaderboard of who owns the most slaves in the server.</div>
-        <div class="cmd-usage"><span class="p">?</span>slavelist</div>
+        <div class="cmd-head"><span class="cmd-tag">/will</span></div>
+        <div class="cmd-desc">Designate where your balance goes if you go inactive. Set a beneficiary, amount, inactivity trigger window, and optional final message.</div>
+        <div class="cmd-usage"><span class="p">/</span>will <span class="a">set @user [amount] | view | revoke | incoming</span></div>
+        <div class="notes">
+          <div class="note">Trigger window: 7-90 days of inactivity (default 30)</div>
+          <div class="note">Amount supports: all, half, 10k, 5m</div>
+          <div class="note">Incoming: see if anyone has named you as a beneficiary</div>
+        </div>
       </div>
     </div>
 
@@ -333,14 +386,18 @@ nav {
         <span class="sec-count">2 commands</span>
       </div>
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?leaderboard</span><span class="alias">?lb</span></div>
-        <div class="cmd-desc">Top 10 players by wallet balance.</div>
-        <div class="cmd-usage"><span class="p">?</span>leaderboard</div>
+        <div class="cmd-head"><span class="cmd-tag">/leaderboard</span></div>
+        <div class="cmd-desc">Top players by wallet, bank, or net worth.</div>
+        <div class="cmd-usage"><span class="p">/</span>leaderboard</div>
       </div>
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?bankleaderboard</span><span class="alias">?blb</span></div>
-        <div class="cmd-desc">Top 10 players by bank balance.</div>
-        <div class="cmd-usage"><span class="p">?</span>bankleaderboard</div>
+        <div class="cmd-head"><span class="cmd-tag">/prestige</span></div>
+        <div class="cmd-desc">Reset your balance and progress to the next prestige tier. Each prestige multiplies your earnings. Max prestige is 10.</div>
+        <div class="cmd-usage"><span class="p">/</span>prestige</div>
+        <div class="notes">
+          <div class="note">Requires meeting a minimum balance threshold per tier</div>
+          <div class="note">Prestige badge displayed on your profile</div>
+        </div>
       </div>
     </div>
 
@@ -367,56 +424,39 @@ nav {
       </div>
     </div>
 
+    <div class="cmd-section" id="seasons">
+      <div class="sec-header">
+        <span class="sec-icon"></span>
+        <span class="sec-name">Seasons</span>
+        <span class="sec-count">1 command</span>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-head"><span class="cmd-tag">/event</span><span class="badge b-own">Admin</span></div>
+        <div class="cmd-desc">Trigger server-wide events that affect all players. Events share a 1-hour cooldown per server. Also configurable from the dashboard.</div>
+        <div class="cmd-usage"><span class="p">/</span>event <span class="a">start [type] | active | stop [type] | setup</span></div>
+        <div class="notes">
+          <div class="note">10 event types: double work, crime boost, market surge, and more</div>
+          <div class="note">Setup: set announcement channel and ping role</div>
+          <div class="note">1-hour shared cooldown applies to admins too</div>
+        </div>
+      </div>
+    </div>
+
     <div class="cmd-section" id="owner">
       <div class="sec-header">
         <span class="sec-icon"></span>
         <span class="sec-name">Owner Only</span>
-        <span class="sec-count">9 commands</span>
+        <span class="sec-count">1 command</span>
       </div>
       <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?ogive</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Give any amount of money to a player.</div>
-        <div class="cmd-usage"><span class="p">?</span>ogive <span class="a">@user [amount]</span></div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?osetbalance</span><span class="alias">?osetbal</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Set a player's wallet to an exact amount.</div>
-        <div class="cmd-usage"><span class="p">?</span>osetbalance <span class="a">@user [amount]</span></div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?osetbank</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Set a player's bank to an exact amount.</div>
-        <div class="cmd-usage"><span class="p">?</span>osetbank <span class="a">@user [amount]</span></div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?oresetleaderboard</span><span class="alias">?oreset</span><span class="badge b-own">Owner</span><span class="badge b-dmg">Wipes All</span></div>
-        <div class="cmd-desc">Reset all balances and banks to $0.</div>
-        <div class="cmd-usage"><span class="p">?</span>oresetleaderboard</div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?oeconomystats</span><span class="alias">?ostats</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Total money in circulation and richest player.</div>
-        <div class="cmd-usage"><span class="p">?</span>oeconomystats</div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?ouserinfo</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">View a player's balance and bank.</div>
-        <div class="cmd-usage"><span class="p">?</span>ouserinfo <span class="a">@user</span></div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?ojackpotdrop</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Drop a jackpot to a random server member.</div>
-        <div class="cmd-usage"><span class="p">?</span>ojackpotdrop <span class="a">[amount]</span></div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?clearcooldowns</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Clear all active cooldowns for all players.</div>
-        <div class="cmd-usage"><span class="p">?</span>clearcooldowns</div>
-      </div>
-      <div class="cmd-card">
-        <div class="cmd-head"><span class="cmd-tag">?ostockfix</span><span class="badge b-own">Owner</span></div>
-        <div class="cmd-desc">Manually trigger a stock market fluctuation tick — same ±3% logic as the 30-minute auto update.</div>
-        <div class="cmd-usage"><span class="p">?</span>ostockfix</div>
+        <div class="cmd-head"><span class="cmd-tag">/owner</span><span class="badge b-own">Owner</span></div>
+        <div class="cmd-desc">Full server administration panel. Manage balances, stocks, slaves, bans, economy resets, and server config directly from Discord.</div>
+        <div class="cmd-usage"><span class="p">/</span>owner <span class="a">jackpot | setbalance | setbank | reseteconomy | setupmarket | stats | userinfo | dm | panel | clearcooldowns | removestock | stockfix | wipe</span></div>
+        <div class="notes">
+          <div class="note">Most admin actions are also available in the web dashboard</div>
+          <div class="note">reseteconomy wipes all balances - use with caution</div>
+          <div class="note">setupmarket seeds all 15 companies for a fresh server</div>
+        </div>
       </div>
     </div>
 
