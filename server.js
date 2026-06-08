@@ -1071,4 +1071,7 @@ registerAPI(app);
 const { registerEventRoutes } = require('./event-routes');
 registerEventRoutes(app);
 
+const { registerVoteWebhook } = require('./vote-webhook');
+registerVoteWebhook(app, client);
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
