@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const User = require('./models/User');
 const Slave = require('./models/Slave');
 const Stock = require('./models/Stock');
@@ -33,7 +34,6 @@ function registerPublicRoutes(app) {
 
             res.json(users.map(u => ({
                 userId: u.userId,
-                guildId: u.guildId,
                 balance: u.balance,
                 bank: u.bank,
                 total: u.balance + u.bank,
@@ -48,19 +48,17 @@ function registerPublicRoutes(app) {
 
     app.get('/api/public/stats', async (req, res) => {
         try {
-            const [userCount, slaveCount, stockCount, moneyAgg, guildIds] = await Promise.all([
+            const [userCount, slaveCount, stockCount, moneyAgg] = await Promise.all([
                 User.countDocuments(),
                 Slave.countDocuments({ ownerId: { $ne: null } }),
                 Stock.countDocuments(),
                 User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }]),
-                User.distinct('guildId'),
             ]);
 
             res.json({
                 totalUsers: userCount,
                 totalSlaves: slaveCount,
                 totalStocks: stockCount,
-                totalGuilds: guildIds.length,
                 totalMoney: moneyAgg[0]?.total?.toFixed(2) || '0.00',
             });
         } catch {
@@ -70,26 +68,27 @@ function registerPublicRoutes(app) {
 
     app.get('/api/public/status', async (req, res) => {
         try {
-            const [userCount, slaveCount, stockCount, moneyAgg, guildIds] = await Promise.all([
+            const [userCount, slaveCount, stockCount, moneyAgg, lastStock, botGuildRes] = await Promise.all([
                 User.countDocuments(),
                 Slave.countDocuments({ ownerId: { $ne: null } }),
                 Stock.countDocuments(),
                 User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }]),
-                User.distinct('guildId'),
+                Stock.findOne({}).sort({ _id: -1 }),
+                fetch('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` } }),
             ]);
+            const botGuilds = await botGuildRes.json();
+            const guildCount = Array.isArray(botGuilds) ? botGuilds.length : 0;
 
             const uptimeSec = Math.floor((Date.now() - new Date(SERVER_START)) / 1000);
             const uptimeStr = uptimeSec < 3600
                 ? Math.floor(uptimeSec / 60) + 'm'
                 : Math.floor(uptimeSec / 3600) + 'h ' + Math.floor((uptimeSec % 3600) / 60) + 'm';
 
-            const lastStock = await Stock.findOne({}).sort({ _id: -1 });
-
             res.json({
                 totalUsers: userCount,
                 totalSlaves: slaveCount,
                 totalStocks: stockCount,
-                totalGuilds: guildIds.length,
+                totalGuilds: guildCount,
                 totalMoney: moneyAgg[0]?.total?.toFixed(2) || '0.00',
                 uptime: uptimeStr,
                 serverStart: SERVER_START,
