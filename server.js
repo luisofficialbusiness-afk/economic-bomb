@@ -1074,4 +1074,7 @@ registerEventRoutes(app);
 const { registerVoteWebhook } = require('./vote-webhook');
 registerVoteWebhook(app, client);
 
+const { registerFixedRoutes } = require('./anticheat-routes');
+registerFixedRoutes(app);
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
