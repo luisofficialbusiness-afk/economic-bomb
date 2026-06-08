@@ -219,10 +219,14 @@ footer {
 </footer>
 
 <script>
-const PASS = 'eb-maint-2026';
-
-function check() {
-  if (document.getElementById('pw').value === PASS) {
+async function check() {
+  const val = document.getElementById('pw').value;
+  const res = await fetch('/api/maint-check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pass: val })
+  });
+  if (res.ok) {
     sessionStorage.setItem('eb_bypass', '1');
     window.location.href = '/';
   } else {
