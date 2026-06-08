@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 const portfolioSchema = new mongoose.Schema({
-    userId: { type: String, required: true },
-    guildId: { type: String, required: true },
+    userId: { type: String, required: true, unique: true },
     holdings: [
         {
             ticker: String,
