@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const User = require('./models/User');
 const Slave = require('./models/Slave');
 const Stock = require('./models/Stock');
@@ -59,13 +60,13 @@ function registerAPI(app) {
         res.json({
             ok: true,
             name: 'Economic Bomb API',
-            version: '1.0.0',
+            version: '1.1.0',
             docs: 'http://economicbomb.nrglearning.xyz/api-docs.html',
             rateLimit: `${RATE_LIMIT_MAX} requests per minute per IP`,
+            note: 'Economy is global. guildId on player endpoint is deprecated.',
             endpoints: [
                 'GET /api/v1/player/:userId',
-                'GET /api/v1/player/:userId/portfolio',
-                'GET /api/v1/leaderboard?guildId=&sort=&limit=',
+                'GET /api/v1/player/:userId/portfolio?guildId=',
                 'GET /api/v1/leaderboard/global?sort=&limit=',
                 'GET /api/v1/stats',
             ],
@@ -74,35 +75,30 @@ function registerAPI(app) {
 
     app.get('/api/v1/player/:userId', async (req, res) => {
         const { userId } = req.params;
-        const { guildId } = req.query;
 
         if (!userId || !/^\d{17,20}$/.test(userId))
             return apiError(res, 400, 'Invalid userId. Must be a valid Discord snowflake.');
 
         try {
-            const query = guildId ? { userId, guildId } : { userId };
-            const users = await User.find(query).lean();
+            const user = await User.findOne({ userId }).lean();
 
-            if (!users.length)
+            if (!user)
                 return apiError(res, 404, 'Player not found.');
 
-            const slaves = await Slave.find({ userId }).lean();
+            const slave = await Slave.findOne({ userId }).lean();
             const ownedSlaves = await Slave.find({ ownerId: userId }).lean();
 
-            const records = users.map(u => ({
-                userId: u.userId,
-                guildId: u.guildId,
-                balance: u.balance,
-                bank: u.bank,
-                netWorth: u.balance + u.bank,
-                prestige: u.prestige || 0,
-                prestigeBadge: PRESTIGE_BADGES[Math.min(u.prestige || 0, PRESTIGE_BADGES.length - 1)] || '',
-                dailyStreak: u.dailyStreak || 0,
-                isEnslaved: slaves.some(s => s.guildId === u.guildId),
-                slavesOwned: ownedSlaves.filter(s => s.guildId === u.guildId).length,
-            }));
-
-            apiResponse(res, guildId ? records[0] : records);
+            apiResponse(res, {
+                userId: user.userId,
+                balance: user.balance,
+                bank: user.bank,
+                netWorth: user.balance + user.bank,
+                prestige: user.prestige || 0,
+                prestigeBadge: PRESTIGE_BADGES[Math.min(user.prestige || 0, PRESTIGE_BADGES.length - 1)] || '',
+                dailyStreak: user.dailyStreak || 0,
+                isEnslaved: !!slave?.ownerId,
+                slavesOwned: ownedSlaves.length,
+            });
         } catch {
             apiError(res, 500, 'Internal server error.');
         }
@@ -159,55 +155,7 @@ function registerAPI(app) {
     });
 
     app.get('/api/v1/leaderboard', async (req, res) => {
-        const { guildId, sort = 'networth', limit = 25 } = req.query;
-
-        if (!guildId)
-            return apiError(res, 400, 'guildId query parameter is required. For global leaderboard use /api/v1/leaderboard/global');
-
-        const cap = Math.min(parseInt(limit) || 25, 100);
-        const validSorts = ['networth', 'wallet', 'bank', 'prestige'];
-        const sortKey = validSorts.includes(sort) ? sort : 'networth';
-
-        const sortField = sortKey === 'wallet' ? { balance: -1 }
-            : sortKey === 'bank' ? { bank: -1 }
-            : sortKey === 'prestige' ? { prestige: -1 }
-            : { balance: -1 };
-
-        try {
-            let users = await User.find({ guildId }).sort(sortField).limit(sortKey === 'networth' ? 500 : cap).lean();
-
-            if (sortKey === 'networth') {
-                users = users
-                    .map(u => ({ ...u, netWorth: u.balance + u.bank }))
-                    .sort((a, b) => b.netWorth - a.netWorth)
-                    .slice(0, cap);
-            }
-
-            const slaves = await Slave.find({ guildId, ownerId: { $ne: null } }).lean();
-            const slaveOwnerCount = {};
-            const enslaved = new Set(slaves.map(s => s.userId));
-            slaves.forEach(s => { slaveOwnerCount[s.ownerId] = (slaveOwnerCount[s.ownerId] || 0) + 1; });
-
-            apiResponse(res, {
-                guildId,
-                sort: sortKey,
-                count: users.length,
-                players: users.map((u, i) => ({
-                    rank: i + 1,
-                    userId: u.userId,
-                    balance: u.balance,
-                    bank: u.bank,
-                    netWorth: parseFloat((u.balance + u.bank).toFixed(2)),
-                    prestige: u.prestige || 0,
-                    prestigeBadge: PRESTIGE_BADGES[Math.min(u.prestige || 0, PRESTIGE_BADGES.length - 1)] || '',
-                    dailyStreak: u.dailyStreak || 0,
-                    slavesOwned: slaveOwnerCount[u.userId] || 0,
-                    isEnslaved: enslaved.has(u.userId),
-                })),
-            });
-        } catch {
-            apiError(res, 500, 'Internal server error.');
-        }
+        return apiError(res, 410, 'Per-server leaderboard is deprecated. Economy is now global. Use /api/v1/leaderboard/global instead.');
     });
 
     app.get('/api/v1/leaderboard/global', async (req, res) => {
@@ -236,15 +184,12 @@ function registerAPI(app) {
             const slaveOwnerCount = {};
             slaves.forEach(s => { slaveOwnerCount[s.ownerId] = (slaveOwnerCount[s.ownerId] || 0) + 1; });
 
-            const guildIds = [...new Set(users.map(u => u.guildId))];
-
             apiResponse(res, {
                 sort: sortKey,
                 count: users.length,
                 players: users.map((u, i) => ({
                     rank: i + 1,
                     userId: u.userId,
-                    guildId: u.guildId,
                     balance: u.balance,
                     bank: u.bank,
                     netWorth: parseFloat((u.balance + u.bank).toFixed(2)),
@@ -254,7 +199,6 @@ function registerAPI(app) {
                     slavesOwned: slaveOwnerCount[u.userId] || 0,
                     isEnslaved: enslaved.has(u.userId),
                 })),
-                totalGuilds: guildIds.length,
             });
         } catch {
             apiError(res, 500, 'Internal server error.');
@@ -263,17 +207,19 @@ function registerAPI(app) {
 
     app.get('/api/v1/stats', async (req, res) => {
         try {
-            const [userCount, slaveCount, stockCount, moneyAgg, guildIds] = await Promise.all([
+            const [userCount, slaveCount, stockCount, moneyAgg, botGuildRes] = await Promise.all([
                 User.countDocuments(),
                 Slave.countDocuments({ ownerId: { $ne: null } }),
                 Stock.countDocuments(),
                 User.aggregate([{ $group: { _id: null, total: { $sum: { $add: ['$balance', '$bank'] } } } }]),
-                User.distinct('guildId'),
+                fetch('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bot ${process.env.BOT_TOKEN}` } }),
             ]);
+            const botGuilds = await botGuildRes.json();
+            const serverCount = Array.isArray(botGuilds) ? botGuilds.length : 0;
 
             apiResponse(res, {
                 totalPlayers: userCount,
-                totalServers: guildIds.length,
+                totalServers: serverCount,
                 totalActiveSlaves: slaveCount,
                 totalStocks: stockCount,
                 totalMoneyInCirculation: parseFloat((moneyAgg[0]?.total ?? 0).toFixed(2)),
