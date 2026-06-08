@@ -1077,4 +1077,10 @@ registerVoteWebhook(app, client);
 const { registerFixedRoutes } = require('./anticheat-routes');
 registerFixedRoutes(app);
 
+app.post('/api/maint-check', (req, res) => {
+    const { pass } = req.body;
+    if (pass && pass === process.env.MAINT_PASS) return res.json({ ok: true });
+    res.status(401).json({ ok: false });
+});
+
 app.listen(PORT, () => console.log(`Dashboard running on http://localhost:${PORT}`));
