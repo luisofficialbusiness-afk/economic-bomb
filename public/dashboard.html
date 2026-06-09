@@ -261,7 +261,6 @@ input::placeholder { color: var(--muted); }
     <div class="sb-label">Overview</div>
     <a class="sb-link active" data-section="overview">Overview</a>
     <div class="sb-label">Economy</div>
-    <a class="sb-link" data-section="leaderboard">Leaderboard</a>
     <a class="sb-link" data-section="slaves">Slaves</a>
     <a class="sb-link" data-section="stocks"> Stocks</a>
     <div class="sb-label">Admin</div>
@@ -292,25 +291,6 @@ input::placeholder { color: var(--muted); }
         <div id="activityFeed" style="padding:1rem 1.5rem">
           <div class="loading">No activity yet — this updates as players use commands</div>
         </div>
-      </div>
-    </div>
-
-    <div class="section" id="sec-leaderboard">
-      <div class="sec-label">Economy</div>
-      <div class="sec-title">Leaderboard</div>
-      <div class="table-wrap">
-        <div class="table-head">
-          <h3>Top Players</h3>
-          <div class="table-search">
-            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
-            <input type="text" placeholder="Search user ID..." oninput="filterTable('lbBody', this.value)"/>
-          </div>
-          <span id="lbCount"></span>
-        </div>
-        <table>
-          <thead><tr><th>#</th><th>User ID</th><th>Wallet</th><th>Bank</th><th>Total</th><th>Status</th></tr></thead>
-          <tbody id="lbBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
-        </table>
       </div>
     </div>
 
@@ -446,36 +426,6 @@ input::placeholder { color: var(--muted); }
       <div class="sec-label">Admin</div>
       <div class="sec-title">Actions</div>
       <div class="action-grid">
-
-        <div class="action-card">
-          <h3>Give Money</h3>
-          <p>Add money directly to a player's wallet using their Discord user ID.</p>
-          <div class="input-row">
-            <input type="text" id="jackpotUser" placeholder="User ID"/>
-            <input type="number" id="jackpotAmount" placeholder="Amount"/>
-          </div>
-          <button class="btn btn-fill" onclick="giveJackpot()">Give Money</button>
-        </div>
-
-        <div class="action-card">
-          <h3>Set Balance</h3>
-          <p>Override a player's wallet balance to an exact amount.</p>
-          <div class="input-row">
-            <input type="text" id="setBalUser" placeholder="User ID"/>
-            <input type="number" id="setBalAmount" placeholder="New balance"/>
-          </div>
-          <button class="btn btn-outline" onclick="setBalance()">Set Balance</button>
-        </div>
-
-        <div class="action-card">
-          <h3>Set Bank</h3>
-          <p>Override a player's bank balance to an exact amount.</p>
-          <div class="input-row">
-            <input type="text" id="setBankUser" placeholder="User ID"/>
-            <input type="number" id="setBankAmount" placeholder="New bank balance"/>
-          </div>
-          <button class="btn btn-outline" onclick="setBank()">Set Bank</button>
-        </div>
 
         <div class="action-card">
           <h3>Fix Stock Price</h3>
@@ -891,7 +841,6 @@ async function loadMe() {
 
 function loadSection(sec) {
   if (sec === 'overview') { loadStats(); loadHealth(); }
-  if (sec === 'leaderboard') loadLeaderboard();
   if (sec === 'slaves') loadSlaves();
   if (sec === 'stocks') loadStocks();
   if (sec === 'channels') loadChannels();
@@ -959,25 +908,6 @@ async function loadHealth() {
         </div>
       </div>
     `;
-  } catch(e) {}
-}
-
-async function loadLeaderboard() {
-  try {
-    const res = await fetch('/api/leaderboard');
-    const data = await res.json();
-    document.getElementById('lbCount').textContent = data.length + ' players';
-    const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    document.getElementById('lbBody').innerHTML = data.map((u, i) => `
-      <tr>
-        <td><span class="pos ${posClass(i)}">${i+1}</span></td>
-        <td class="mono">${u.userId}</td>
-        <td class="mono">$${Number(u.balance).toLocaleString()}</td>
-        <td class="mono">$${Number(u.bank).toLocaleString()}</td>
-        <td class="mono" style="color:var(--accent)">$${Number(u.total).toLocaleString()}</td>
-        <td>${u.isEnslave ? '<span class="tag tag-red">⛓️ Enslaved</span>' : '<span class="tag tag-green">Free</span>'}</td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="loading">No players yet</td></tr>';
   } catch(e) {}
 }
 
@@ -1158,8 +1088,6 @@ async function loadAnticheat() {
 
 async function quickResetBalance(userId) {
   const [r1, r2] = await Promise.all([
-    fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) }),
-    fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount: 0 }) })
   ]);
   const d1 = await r1.json();
   d1.success ? toast('✅ Wallet and bank reset to $0') : toast('❌ ' + d1.error, 'error');
@@ -1223,7 +1151,7 @@ async function unbanUser(userId) {
 }
 
 const MODULE_CATEGORIES = {
-  economy:     { label: 'Economy', icon: '$', cmds: { balance: 'Balance', daily: 'Daily', weekly: 'Weekly', givemoney: 'Give Money', deposit: 'Deposit', withdraw: 'Withdraw' } },
+  economy:     { label: 'Economy', icon: '$', cmds: { balance: 'Balance', daily: 'Daily', work: 'Work', crime: 'Crime', rob: 'Rob' } },
   gambling:    { label: 'Gambling', icon: 'G', cmds: { coinflip: 'Coinflip', dice: 'Dice', slots: 'Slots', duel: 'Duel', rob: 'Rob' } },
   stocks:      { label: 'Stocks', icon: 'S', cmds: { stocks: 'View Stocks', buystock: 'Buy Stock', sellstock: 'Sell Stock', portfolio: 'Portfolio', stockhistory: 'Stock History' } },
   slave:       { label: 'Slave System', icon: 'L', cmds: { buy: 'Buy Player', outbid: 'Outbid', slave: 'Slave Status', slavepanel: 'Slave Panel', slavelist: 'Slave List' } },
@@ -1318,33 +1246,6 @@ async function removeStock() {
   const res = await fetch('/api/action/remove-stock', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, ticker }) });
   const d = await res.json();
   d.success ? toast(`✅ Removed ${ticker} from ${userId}`) : toast('❌ ' + d.error, 'error');
-}
-
-async function giveJackpot() {
-  const userId = document.getElementById('jackpotUser').value.trim();
-  const amount = document.getElementById('jackpotAmount').value;
-  if (!userId || !amount) return toast('Fill in all fields', 'error');
-  const res = await fetch('/api/action/jackpot', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
-  const d = await res.json();
-  d.success ? toast('✅ Money given!') : toast('❌ ' + d.error, 'error');
-}
-
-async function setBalance() {
-  const userId = document.getElementById('setBalUser').value.trim();
-  const amount = document.getElementById('setBalAmount').value;
-  if (!userId || amount === '') return toast('Fill in all fields', 'error');
-  const res = await fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
-  const d = await res.json();
-  d.success ? toast('✅ Balance updated!') : toast('❌ ' + d.error, 'error');
-}
-
-async function setBank() {
-  const userId = document.getElementById('setBankUser').value.trim();
-  const amount = document.getElementById('setBankAmount').value;
-  if (!userId || amount === '') return toast('Fill in all fields', 'error');
-  const res = await fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
-  const d = await res.json();
-  d.success ? toast('✅ Bank updated!') : toast('❌ ' + d.error, 'error');
 }
 
 async function fixStock() {
