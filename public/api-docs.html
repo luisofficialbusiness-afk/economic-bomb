@@ -206,7 +206,6 @@ footer {
     <a href="#ep-info" class="sb-link">API Info</a>
     <a href="#ep-player" class="sb-link">Player Stats</a>
     <a href="#ep-portfolio" class="sb-link">Player Portfolio</a>
-    <a href="#ep-leaderboard" class="sb-link">Server Leaderboard</a>
     <a href="#ep-global" class="sb-link">Global Leaderboard</a>
     <a href="#ep-stats" class="sb-link">Network Stats</a>
     <div class="sb-section">Examples</div>
@@ -224,7 +223,7 @@ footer {
 
       <div class="meta-strip">
         <div class="meta-cell"><div class="meta-l">Base URL</div><div class="meta-v">economicbomb.nrglearning.xyz/api/v1</div></div>
-        <div class="meta-cell"><div class="meta-l">Version</div><div class="meta-v yellow">v1.0.0</div></div>
+        <div class="meta-cell"><div class="meta-l">Version</div><div class="meta-v yellow">v1.1.0</div></div>
         <div class="meta-cell"><div class="meta-l">Auth</div><div class="meta-v green">None</div></div>
         <div class="meta-cell"><div class="meta-l">Rate Limit</div><div class="meta-v">30 / min</div></div>
       </div>
@@ -303,7 +302,6 @@ footer {
           <div class="field-label">Query Parameters</div>
           <table>
             <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="p-name">guildId</td><td class="p-type">string</td><td class="p-req n">No</td><td>Filter to a specific server. Omit to return all servers the player is in.</td></tr>
           </table>
           <div class="field-label">Response</div>
           <pre>{
@@ -322,7 +320,6 @@ footer {
             <div class="field-label">Try it</div>
             <div class="try-row">
               <input class="try-input" id="in-player-id" placeholder="userId (Discord snowflake)">
-              <input class="try-input" id="in-player-guild" placeholder="guildId (optional)">
               <button class="try-btn" onclick="tryPlayer()">Send</button>
             </div>
             <div class="try-status" id="status-player"></div>
@@ -383,57 +380,7 @@ footer {
       </div>
     </div>
 
-    <div id="ep-leaderboard" class="section">
-      <div class="section-title">Server Leaderboard</div>
-      <div class="ep">
-        <div class="ep-head" onclick="toggle(this)">
-          <span class="badge badge-get">GET</span>
-          <span class="ep-path">/api/v1/leaderboard</span>
-          <span class="ep-summary">Returns top players in a specific server</span>
-          <span class="ep-arrow">&#9660;</span>
-        </div>
-        <div class="ep-body">
-          <div class="field-label">Query Parameters</div>
-          <table>
-            <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="p-name">guildId</td><td class="p-type">string</td><td class="p-req y">Yes</td><td>Discord server ID</td></tr>
-            <tr><td class="p-name">sort</td><td class="p-type">string</td><td class="p-req n">No</td><td><code>networth</code> (default), <code>wallet</code>, <code>bank</code>, <code>prestige</code></td></tr>
-            <tr><td class="p-name">limit</td><td class="p-type">number</td><td class="p-req n">No</td><td>1-100, default 25</td></tr>
-          </table>
-          <div class="field-label">Response</div>
-          <pre>{
-  <span class="k">"guildId"</span>: <span class="s">"987654321098765432"</span>,
-  <span class="k">"sort"</span>: <span class="s">"networth"</span>,
-  <span class="k">"count"</span>: <span class="n">25</span>,
-  <span class="k">"players"</span>: [
-    {
-      <span class="k">"rank"</span>: <span class="n">1</span>,
-      <span class="k">"userId"</span>: <span class="s">"123456789012345678"</span>,
-      <span class="k">"balance"</span>: <span class="n">500000</span>,
-      <span class="k">"bank"</span>: <span class="n">2000000</span>,
-      <span class="k">"netWorth"</span>: <span class="n">2500000</span>,
-      <span class="k">"prestige"</span>: <span class="n">3</span>,
-      <span class="k">"prestigeBadge"</span>: <span class="s">"★★★"</span>,
-      <span class="k">"dailyStreak"</span>: <span class="n">30</span>,
-      <span class="k">"slavesOwned"</span>: <span class="n">5</span>,
-      <span class="k">"isEnslaved"</span>: <span class="b">false</span>
-    }
-  ]
-}</pre>
-          <div class="try-section">
-            <div class="field-label">Try it</div>
-            <div class="try-row">
-              <input class="try-input" id="in-lb-guild" placeholder="guildId">
-              <input class="try-input" id="in-lb-sort" placeholder="sort (networth / wallet / bank / prestige)">
-              <input class="try-input" id="in-lb-limit" placeholder="limit (default 25)" style="max-width:160px;">
-              <button class="try-btn" onclick="tryLeaderboard()">Send</button>
-            </div>
-            <div class="try-status" id="status-lb"></div>
-            <div class="try-result" id="res-lb"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <div id="ep-global" class="section">
       <div class="section-title">Global Leaderboard</div>
@@ -455,8 +402,22 @@ footer {
           <pre>{
   <span class="k">"sort"</span>: <span class="s">"networth"</span>,
   <span class="k">"count"</span>: <span class="n">25</span>,
-  <span class="k">"totalGuilds"</span>: <span class="n">15</span>,
-  <span class="k">"players"</span>: [ <span class="c">... same structure as server leaderboard</span> ]
+  <span class="k">"sort"</span>: <span class="s">"networth"</span>,
+  <span class="k">"count"</span>: <span class="n">25</span>,
+  <span class="k">"players"</span>: [
+    {
+      <span class="k">"rank"</span>: <span class="n">1</span>,
+      <span class="k">"userId"</span>: <span class="s">"123456789012345678"</span>,
+      <span class="k">"balance"</span>: <span class="n">500000</span>,
+      <span class="k">"bank"</span>: <span class="n">2000000</span>,
+      <span class="k">"netWorth"</span>: <span class="n">2500000</span>,
+      <span class="k">"prestige"</span>: <span class="n">3</span>,
+      <span class="k">"prestigeBadge"</span>: <span class="s">"★★★"</span>,
+      <span class="k">"dailyStreak"</span>: <span class="n">30</span>,
+      <span class="k">"slavesOwned"</span>: <span class="n">5</span>,
+      <span class="k">"isEnslaved"</span>: <span class="b">false</span>
+    }
+  ]
 }</pre>
           <div class="try-section">
             <div class="field-label">Try it</div>
@@ -504,15 +465,20 @@ footer {
 
     <div id="ex-js" class="section">
       <div class="section-title">JavaScript</div>
-      <pre><span class="c">// Player stats in a specific server</span>
-<span class="b">const</span> res = <span class="b">await</span> fetch(<span class="s">'/api/v1/player/123456789012345678?guildId=987654321098765432'</span>);
+      <pre><span class="c">// Player stats (global - no guildId needed)</span>
+<span class="b">const</span> res = <span class="b">await</span> fetch(<span class="s">'/api/v1/player/123456789012345678'</span>);
 <span class="b">const</span> { data } = <span class="b">await</span> res.json();
 console.log(data.netWorth);
 
 <span class="c">// Global leaderboard top 10</span>
 <span class="b">const</span> lb = <span class="b">await</span> fetch(<span class="s">'/api/v1/leaderboard/global?limit=10'</span>);
 <span class="b">const</span> { data: board } = <span class="b">await</span> lb.json();
-board.players.forEach(p => console.log(p.rank, p.userId, p.netWorth));</pre>
+board.players.forEach(p => console.log(p.rank, p.userId, p.netWorth));
+
+<span class="c">// Network stats</span>
+<span class="b">const</span> stats = <span class="b">await</span> fetch(<span class="s">'/api/v1/stats'</span>);
+<span class="b">const</span> { data: s } = <span class="b">await</span> stats.json();
+console.log(s.totalPlayers, s.totalServers);</pre>
     </div>
 
     <div id="ex-python" class="section">
@@ -526,9 +492,13 @@ r = requests.get(<span class="s">f"{BASE}/stats"</span>)
 data = r.json()[<span class="s">"data"</span>]
 print(data[<span class="s">"totalPlayers"</span>])
 
-<span class="c"># Server leaderboard</span>
-r = requests.get(<span class="s">f"{BASE}/leaderboard"</span>, params={
-    <span class="s">"guildId"</span>: <span class="s">"987654321098765432"</span>,
+<span class="c"># Player stats (global)</span>
+r = requests.get(<span class="s">f"{BASE}/player/123456789012345678"</span>)
+player = r.json()[<span class="s">"data"</span>]
+print(player[<span class="s">"netWorth"</span>])
+
+<span class="c"># Global leaderboard</span>
+r = requests.get(<span class="s">f"{BASE}/leaderboard/global"</span>, params={
     <span class="s">"sort"</span>: <span class="s">"networth"</span>,
     <span class="s">"limit"</span>: <span class="n">10</span>
 })
@@ -537,8 +507,11 @@ players = r.json()[<span class="s">"data"</span>][<span class="s">"players"</spa
 
     <div id="ex-curl" class="section">
       <div class="section-title">cURL</div>
-      <pre><span class="c"># Player stats</span>
+      <pre><span class="c"># Player stats (global - no guildId needed)</span>
 curl "http://economicbomb.nrglearning.xyz/api/v1/player/123456789012345678"
+
+<span class="c"># Player portfolio (still per-server)</span>
+curl "http://economicbomb.nrglearning.xyz/api/v1/player/123456789012345678/portfolio?guildId=987654321098765432"
 
 <span class="c"># Global leaderboard</span>
 curl "http://economicbomb.nrglearning.xyz/api/v1/leaderboard/global?sort=networth&limit=10"
@@ -591,10 +564,8 @@ async function tryRequest(url, resultId, statusId) {
 
 function tryPlayer() {
   const id = document.getElementById('in-player-id').value.trim();
-  const guild = document.getElementById('in-player-guild').value.trim();
   if (!id) return;
-  const url = `/api/v1/player/${id}` + (guild ? `?guildId=${guild}` : '');
-  tryRequest(url, 'res-player', 'status-player');
+  tryRequest(`/api/v1/player/${id}`, 'res-player', 'status-player');
 }
 
 function tryPortfolio() {
@@ -604,16 +575,7 @@ function tryPortfolio() {
   tryRequest(`/api/v1/player/${id}/portfolio?guildId=${guild}`, 'res-port', 'status-port');
 }
 
-function tryLeaderboard() {
-  const guild = document.getElementById('in-lb-guild').value.trim();
-  const sort = document.getElementById('in-lb-sort').value.trim();
-  const limit = document.getElementById('in-lb-limit').value.trim();
-  if (!guild) return;
-  let url = `/api/v1/leaderboard?guildId=${guild}`;
-  if (sort) url += `&sort=${sort}`;
-  if (limit) url += `&limit=${limit}`;
-  tryRequest(url, 'res-lb', 'status-lb');
-}
+
 
 function tryGlobal() {
   const sort = document.getElementById('in-gl-sort').value.trim();
