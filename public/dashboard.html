@@ -261,6 +261,7 @@ input::placeholder { color: var(--muted); }
     <div class="sb-label">Overview</div>
     <a class="sb-link active" data-section="overview">Overview</a>
     <div class="sb-label">Economy</div>
+    <a class="sb-link" data-section="leaderboard">Leaderboard</a>
     <a class="sb-link" data-section="slaves">Slaves</a>
     <a class="sb-link" data-section="stocks"> Stocks</a>
     <div class="sb-label">Admin</div>
@@ -291,6 +292,25 @@ input::placeholder { color: var(--muted); }
         <div id="activityFeed" style="padding:1rem 1.5rem">
           <div class="loading">No activity yet — this updates as players use commands</div>
         </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-leaderboard">
+      <div class="sec-label">Economy</div>
+      <div class="sec-title">Leaderboard</div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <h3>Top Players</h3>
+          <div class="table-search">
+            <span style="color:var(--muted);font-size:0.8rem">⌕</span>
+            <input type="text" placeholder="Search user ID..." oninput="filterTable('lbBody', this.value)"/>
+          </div>
+          <span id="lbCount"></span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>User ID</th><th>Wallet</th><th>Bank</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+        </table>
       </div>
     </div>
 
@@ -337,19 +357,30 @@ input::placeholder { color: var(--muted); }
 
     <div class="section" id="sec-anticheat">
       <div class="sec-label">Admin</div>
-      <div class="sec-title">Anti-Cheat</div>
-      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:2rem;max-width:540px">Flags players with suspicious balances — impossible amounts or sudden spikes. Review and take action directly.</p>
-      <div class="table-wrap">
-        <div class="table-head">
-          <h3>Flagged Players</h3>
-          <button class="btn btn-outline btn-sm" onclick="loadAnticheat()">↻ Refresh</button>
-        </div>
-        <table>
-          <thead><tr><th>User ID</th><th>Flag</th><th>Detail</th><th>Wallet</th><th>Bank</th><th>Actions</th></tr></thead>
-          <tbody id="anticheatBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
-        </table>
+      <div class="sec-title">Anti-Cheat v2</div>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.5rem;max-width:560px">Live flag log from the bot anti-cheat. Critical flags are auto-corrected and players are notified. Warning flags are logged for review.</p>
+
+      <div class="stat-grid" id="acSummary" style="margin-bottom:1.5rem">
+        <div class="stat-card"><div class="stat-n" id="ac-total">--</div><div class="stat-l">Total Flags</div></div>
+        <div class="stat-card"><div class="stat-n" style="color:var(--red)" id="ac-critical">--</div><div class="stat-l">Critical</div></div>
+        <div class="stat-card"><div class="stat-n" style="color:var(--accent)" id="ac-warning">--</div><div class="stat-l">Warning</div></div>
+        <div class="stat-card"><div class="stat-n" style="color:var(--green)" id="ac-fixed">--</div><div class="stat-l">Auto-Fixed</div></div>
       </div>
 
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm ac-filter-btn active" data-filter="all" onclick="setAcFilter('all',this)">All</button>
+        <button class="btn btn-outline btn-sm ac-filter-btn" data-filter="critical" onclick="setAcFilter('critical',this)">Critical</button>
+        <button class="btn btn-outline btn-sm ac-filter-btn" data-filter="warning" onclick="setAcFilter('warning',this)">Warning</button>
+        <button class="btn btn-outline btn-sm ac-filter-btn" data-filter="autofixed" onclick="setAcFilter('autofixed',this)">Auto-Fixed</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="loadAnticheat()">Refresh</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>User ID</th><th>Flag</th><th>Detail</th><th>Wallet Before</th><th>Bank Before</th><th>Actions</th></tr></thead>
+          <tbody id="anticheatBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
 
       <div id="removeStockPanel" style="display:none;margin-top:1rem">
         <div class="action-card">
@@ -426,6 +457,36 @@ input::placeholder { color: var(--muted); }
       <div class="sec-label">Admin</div>
       <div class="sec-title">Actions</div>
       <div class="action-grid">
+
+        <div class="action-card">
+          <h3>Give Money</h3>
+          <p>Add money directly to a player's wallet using their Discord user ID.</p>
+          <div class="input-row">
+            <input type="text" id="jackpotUser" placeholder="User ID"/>
+            <input type="number" id="jackpotAmount" placeholder="Amount"/>
+          </div>
+          <button class="btn btn-fill" onclick="giveJackpot()">Give Money</button>
+        </div>
+
+        <div class="action-card">
+          <h3>Set Balance</h3>
+          <p>Override a player's wallet balance to an exact amount.</p>
+          <div class="input-row">
+            <input type="text" id="setBalUser" placeholder="User ID"/>
+            <input type="number" id="setBalAmount" placeholder="New balance"/>
+          </div>
+          <button class="btn btn-outline" onclick="setBalance()">Set Balance</button>
+        </div>
+
+        <div class="action-card">
+          <h3>Set Bank</h3>
+          <p>Override a player's bank balance to an exact amount.</p>
+          <div class="input-row">
+            <input type="text" id="setBankUser" placeholder="User ID"/>
+            <input type="number" id="setBankAmount" placeholder="New bank balance"/>
+          </div>
+          <button class="btn btn-outline" onclick="setBank()">Set Bank</button>
+        </div>
 
         <div class="action-card">
           <h3>Fix Stock Price</h3>
@@ -841,6 +902,7 @@ async function loadMe() {
 
 function loadSection(sec) {
   if (sec === 'overview') { loadStats(); loadHealth(); }
+  if (sec === 'leaderboard') loadLeaderboard();
   if (sec === 'slaves') loadSlaves();
   if (sec === 'stocks') loadStocks();
   if (sec === 'channels') loadChannels();
@@ -908,6 +970,25 @@ async function loadHealth() {
         </div>
       </div>
     `;
+  } catch(e) {}
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch('/api/leaderboard');
+    const data = await res.json();
+    document.getElementById('lbCount').textContent = data.length + ' players';
+    const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    document.getElementById('lbBody').innerHTML = data.map((u, i) => `
+      <tr>
+        <td><span class="pos ${posClass(i)}">${i+1}</span></td>
+        <td class="mono">${u.userId}</td>
+        <td class="mono">$${Number(u.balance).toLocaleString()}</td>
+        <td class="mono">$${Number(u.bank).toLocaleString()}</td>
+        <td class="mono" style="color:var(--accent)">$${Number(u.total).toLocaleString()}</td>
+        <td>${u.isEnslave ? '<span class="tag tag-red">⛓️ Enslaved</span>' : '<span class="tag tag-green">Free</span>'}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="loading">No players yet</td></tr>';
   } catch(e) {}
 }
 
@@ -1055,43 +1136,90 @@ async function saveChannels() {
 }
 
 
+let acAllFlags = [];
+let acFilter = 'all';
+
+const AC_LABELS = {
+  max_balance:         { label: 'Max Balance Exceeded', sev: 'critical' },
+  nan_balance:         { label: 'NaN Balance',          sev: 'critical' },
+  nan_bank:            { label: 'NaN Bank',             sev: 'critical' },
+  negative_wallet:     { label: 'Negative Wallet',      sev: 'critical' },
+  negative_bank:       { label: 'Negative Bank',        sev: 'critical' },
+  high_net_worth:      { label: 'High Net Worth',       sev: 'warning'  },
+  impossible_streak:   { label: 'Impossible Streak',    sev: 'warning'  },
+  rapid_gain:          { label: 'Rapid Gain',           sev: 'warning'  },
+  rod_durability:      { label: 'Rod Durability',       sev: 'warning'  },
+  pickaxe_durability:  { label: 'Pickaxe Durability',   sev: 'warning'  },
+};
+
+function setAcFilter(filter, btn) {
+  acFilter = filter;
+  document.querySelectorAll('.ac-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAcTable();
+}
+
+function renderAcTable() {
+  let flags = acAllFlags;
+  if (acFilter === 'critical') flags = flags.filter(f => f.severity === 'critical');
+  else if (acFilter === 'warning') flags = flags.filter(f => f.severity === 'warning');
+  else if (acFilter === 'autofixed') flags = flags.filter(f => f.autoFixed);
+
+  const total = acAllFlags.length;
+  const critical = acAllFlags.filter(f => f.severity === 'critical').length;
+  const warning = acAllFlags.filter(f => f.severity === 'warning').length;
+  const fixed = acAllFlags.filter(f => f.autoFixed).length;
+  document.getElementById('ac-total').textContent = total;
+  document.getElementById('ac-critical').textContent = critical;
+  document.getElementById('ac-warning').textContent = warning;
+  document.getElementById('ac-fixed').textContent = fixed;
+
+  const fmtTime = ts => {
+    const d = new Date(ts);
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  document.getElementById('anticheatBody').innerHTML = flags.length ? flags.map(f => {
+    const meta = AC_LABELS[f.type] || { label: f.type, sev: f.severity || 'warning' };
+    const isCrit = meta.sev === 'critical';
+    const fixedBadge = f.autoFixed ? '<span class="tag tag-green" style="font-size:0.68rem;margin-left:0.3rem">Fixed</span>' : '';
+    return `<tr>
+      <td class="mono" style="font-size:0.78rem;color:var(--muted)">${fmtTime(f.timestamp)}</td>
+      <td class="mono">${f.userId}</td>
+      <td><span class="tag ${isCrit ? 'tag-red' : 'tag-yellow'}">${meta.label}</span>${fixedBadge}</td>
+      <td style="font-size:0.82rem;color:var(--muted);max-width:200px">${f.detail}</td>
+      <td class="mono">$${Number(f.balanceBefore || 0).toLocaleString()}</td>
+      <td class="mono">$${Number(f.bankBefore || 0).toLocaleString()}</td>
+      <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-danger btn-sm" onclick="quickWipeBalance('${f.userId}')">Wipe Balance</button>
+        <button class="btn btn-outline btn-sm" onclick="openRemoveStockPanel('${f.userId}')">Remove Stock</button>
+        <button class="btn btn-outline btn-sm" onclick="quickBan('${f.userId}')">Ban</button>
+        <button class="btn btn-outline btn-sm" onclick="dismissAcFlag('${f._id}')">Dismiss</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--green)">No flags detected</td></tr>';
+}
+
 async function loadAnticheat() {
   try {
     const res = await fetch('/api/anticheat');
-    const flags = await res.json();
-    const SEVERITY_LABELS = {
-      max_balance:      { label: 'Max Balance Exceeded', sev: 'high' },
-      nan_balance:      { label: 'NaN Balance',          sev: 'high' },
-      negative_wallet:  { label: 'Negative Wallet',      sev: 'high' },
-      negative_bank:    { label: 'Negative Bank',        sev: 'high' },
-      rapid_gain:       { label: 'Rapid Gain',           sev: 'high' },
-      balance_spike:    { label: 'Balance Spike',        sev: 'medium' },
-      high_net_worth:   { label: 'High Net Worth',       sev: 'medium' },
-    };
-    document.getElementById('anticheatBody').innerHTML = flags.length ? flags.map(f => {
-      const meta = SEVERITY_LABELS[f.type] || { label: f.type, sev: 'medium' };
-      return `<tr>
-        <td class="mono">${f.userId}</td>
-        <td><span class="tag ${meta.sev === 'high' ? 'tag-red' : 'tag-yellow'}">${meta.label}</span></td>
-        <td style="font-size:0.82rem;color:var(--muted)">${f.detail}</td>
-        <td class="mono">$${Number(f.balance).toLocaleString()}</td>
-        <td class="mono">$${Number(f.bank).toLocaleString()}</td>
-        <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
-          <button class="btn btn-danger btn-sm" onclick="quickResetBalance('${f.userId}')">Reset to $0</button>
-          <button class="btn btn-outline btn-sm" onclick="openRemoveStockPanel('${f.userId}')">Remove Stock</button>
-          <button class="btn btn-outline btn-sm" onclick="quickBan('${f.userId}')">Ban</button>
-        </td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--green)">No flags detected</td></tr>';
+    acAllFlags = await res.json();
+    renderAcTable();
   } catch(e) {}
 }
 
-async function quickResetBalance(userId) {
-  const [r1, r2] = await Promise.all([
-  ]);
-  const d1 = await r1.json();
-  d1.success ? toast('✅ Wallet and bank reset to $0') : toast('❌ ' + d1.error, 'error');
+async function quickWipeBalance(userId) {
+  const r = await fetch('/api/action/wipe-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId }) });
+  const d = await r.json();
+  d.success ? toast('Wallet and bank wiped to $0') : toast(d.error || 'Failed', 'error');
   loadAnticheat();
+}
+
+async function dismissAcFlag(id) {
+  if (!id) return;
+  const r = await fetch('/api/anticheat/dismiss', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+  const d = await r.json();
+  if (d.success) { acAllFlags = acAllFlags.filter(f => f._id !== id); renderAcTable(); }
 }
 
 let removeStockUserId = null;
@@ -1151,7 +1279,7 @@ async function unbanUser(userId) {
 }
 
 const MODULE_CATEGORIES = {
-  economy:     { label: 'Economy', icon: '$', cmds: { balance: 'Balance', daily: 'Daily', work: 'Work', crime: 'Crime', rob: 'Rob' } },
+  economy:     { label: 'Economy', icon: '$', cmds: { balance: 'Balance', daily: 'Daily', weekly: 'Weekly', givemoney: 'Give Money', deposit: 'Deposit', withdraw: 'Withdraw' } },
   gambling:    { label: 'Gambling', icon: 'G', cmds: { coinflip: 'Coinflip', dice: 'Dice', slots: 'Slots', duel: 'Duel', rob: 'Rob' } },
   stocks:      { label: 'Stocks', icon: 'S', cmds: { stocks: 'View Stocks', buystock: 'Buy Stock', sellstock: 'Sell Stock', portfolio: 'Portfolio', stockhistory: 'Stock History' } },
   slave:       { label: 'Slave System', icon: 'L', cmds: { buy: 'Buy Player', outbid: 'Outbid', slave: 'Slave Status', slavepanel: 'Slave Panel', slavelist: 'Slave List' } },
@@ -1246,6 +1374,33 @@ async function removeStock() {
   const res = await fetch('/api/action/remove-stock', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, ticker }) });
   const d = await res.json();
   d.success ? toast(`✅ Removed ${ticker} from ${userId}`) : toast('❌ ' + d.error, 'error');
+}
+
+async function giveJackpot() {
+  const userId = document.getElementById('jackpotUser').value.trim();
+  const amount = document.getElementById('jackpotAmount').value;
+  if (!userId || !amount) return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/jackpot', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Money given!') : toast('❌ ' + d.error, 'error');
+}
+
+async function setBalance() {
+  const userId = document.getElementById('setBalUser').value.trim();
+  const amount = document.getElementById('setBalAmount').value;
+  if (!userId || amount === '') return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/set-balance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Balance updated!') : toast('❌ ' + d.error, 'error');
+}
+
+async function setBank() {
+  const userId = document.getElementById('setBankUser').value.trim();
+  const amount = document.getElementById('setBankAmount').value;
+  if (!userId || amount === '') return toast('Fill in all fields', 'error');
+  const res = await fetch('/api/action/set-bank', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId, amount }) });
+  const d = await res.json();
+  d.success ? toast('✅ Bank updated!') : toast('❌ ' + d.error, 'error');
 }
 
 async function fixStock() {
