@@ -1060,7 +1060,7 @@ registerEventRoutes(app);
 const { registerVoteWebhook } = require('./vote-webhook');
 registerVoteWebhook(app);
 
-const { registerAnticheatV2Routes } = require('./anticheat-routes');
+const { registerAnticheatV2Routes } = require('./anticheat-v2-routes');
 registerAnticheatV2Routes(app);
 
 app.post('/api/maint-check', (req, res) => {
