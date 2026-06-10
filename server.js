@@ -1060,8 +1060,8 @@ registerEventRoutes(app);
 const { registerVoteWebhook } = require('./vote-webhook');
 registerVoteWebhook(app);
 
-const { registerFixedRoutes } = require('./anticheat-routes');
-registerFixedRoutes(app);
+const { registerAnticheatV2Routes } = require('./anticheat-routes');
+registerAnticheatV2Routes(app);
 
 app.post('/api/maint-check', (req, res) => {
     const { pass } = req.body;
