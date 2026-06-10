@@ -465,35 +465,41 @@ app.get('/api/health', requireAuth, async (req, res) => {
 });
 app.get('/api/anticheat', requireAuth, async (req, res) => {
     try {
-        const MAX_BALANCE = 999_999_999_999_999;
-        const users = await User.find({}).lean();
-        const flags = [];
-
-        for (const u of users) {
-            const total = (u.balance || 0) + (u.bank || 0);
-            if (total > MAX_BALANCE) {
-                flags.push({ userId: u.userId, type: 'max_balance', detail: `$${total.toLocaleString()} exceeds hard cap`, severity: 'high', balance: u.balance, bank: u.bank });
-                continue;
-            }
-            if (isNaN(u.balance) || isNaN(u.bank)) {
-                flags.push({ userId: u.userId, type: 'nan_balance', detail: 'Balance or bank is NaN', severity: 'high', balance: u.balance, bank: u.bank });
-                continue;
-            }
-            if (u.balance < 0) {
-                flags.push({ userId: u.userId, type: 'negative_wallet', detail: `Wallet is $${u.balance.toLocaleString()}`, severity: 'high', balance: u.balance, bank: u.bank });
-                continue;
-            }
-            if (u.bank < 0) {
-                flags.push({ userId: u.userId, type: 'negative_bank', detail: `Bank is $${u.bank.toLocaleString()}`, severity: 'high', balance: u.balance, bank: u.bank });
-                continue;
-            }
-            if (total > 500_000_000_000) {
-                flags.push({ userId: u.userId, type: 'high_net_worth', detail: `$${total.toLocaleString()} net worth - verify legitimacy`, severity: 'medium', balance: u.balance, bank: u.bank });
-            }
-        }
-
-        res.json(flags);
+        let AnticheatLog;
+        try { AnticheatLog = require('./models/AnticheatLog'); } catch { return res.json([]); }
+        const logs = await AnticheatLog.find({ dismissed: false }).sort({ timestamp: -1 }).limit(200).lean();
+        res.json(logs);
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/anticheat/dismiss', requireAuth, async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'Missing id' });
+    try {
+        let AnticheatLog;
+        try { AnticheatLog = require('./models/AnticheatLog'); } catch { return res.json({ success: false }); }
+        await AnticheatLog.findByIdAndUpdate(id, { dismissed: true });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/action/wipe-balance', requireAuth, async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    try {
+        const user = await User.findOne({ userId });
+        if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+        const balBefore = user.balance;
+        const bankBefore = user.bank;
+        user.balance = 0;
+        user.bank = 0;
+        await user.save();
+        try {
+            const AnticheatLog = require('./models/AnticheatLog');
+            await AnticheatLog.create({ userId, type: 'manual_wipe', detail: 'Manual wipe by dashboard admin', severity: 'critical', balanceBefore: balBefore, bankBefore, balanceAfter: 0, bankAfter: 0, autoFixed: true, dismissed: false, timestamp: Date.now() });
+        } catch {}
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, error: 'Failed' }); }
 });
 app.get('/api/bans', requireAuth, async (req, res) => {
     try {
@@ -1060,8 +1066,7 @@ registerEventRoutes(app);
 const { registerVoteWebhook } = require('./vote-webhook');
 registerVoteWebhook(app);
 
-const { registerAnticheatV2Routes } = require('./anticheat-v2-routes');
-registerAnticheatV2Routes(app);
+
 
 app.post('/api/maint-check', (req, res) => {
     const { pass } = req.body;
