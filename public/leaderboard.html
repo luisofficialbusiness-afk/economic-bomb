@@ -157,7 +157,6 @@ footer { border-top: 1px solid var(--border); padding: 2rem; display: flex; alig
         <tr>
           <th>#</th>
           <th>Player</th>
-          <th>Server</th>
           <th class="right">Wallet</th>
           <th class="right">Bank</th>
           <th class="right" id="sort-label">Net Worth</th>
@@ -250,7 +249,18 @@ function render() {
 
 async function load() {
   try {
-    const r = await fetch('/api/public/leaderboard');
+    const r = await fetch('/api/v1/leaderboard/global?limit=100');
+    const j = await r.json();
+    allData = j.data?.players || [];
+    render();
+  } catch {
+    document.getElementById('lb-body').innerHTML = '<tr><td colspan="5"><div class="empty-state"><div>--</div>Failed to load leaderboard.</div></td></tr>';
+  }
+}
+
+async function load_unused() {
+  try {
+    const r = await fetch('/api/v1/leaderboard/global?limit=100');
     allData = await r.json();
     render();
   } catch {
